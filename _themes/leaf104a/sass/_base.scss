@@ -1,0 +1,98 @@
+// =====================================
+// BASE CSS
+// =====================================
+
+/* ==========================================================================
+   *** BASE CSS ***
+   ========================================================================== */
+
+
+/*
+	Type presets
+*/
+
+body {
+	font-size: $base-font-size;
+	line-height: $base-line-height;
+	font-family: IntervalLight, Futura, "Trebuchet MS", sans-serif;
+}
+
+/*
+	Typography
+*/
+
+article p, section p {
+	-webkit-hyphens: auto;
+	   -moz-hyphens: auto;
+			hyphens: auto;
+  padding-left: 1em;
+  padding-right: 1em;
+}
+
+article, section {
+  padding-left: 1em;
+  padding-right: 1em;
+}
+
+/*
+    Modules
+*/
+.pagination {
+  margin: 1em 0;
+  padding: 1em 0;
+  @include pie-clearfix;
+
+  a.prev {
+    float: left;
+  }
+  a.next {
+    float: right;
+  }
+}
+
+
+details {
+  overflow: hidden;
+  display: block;
+}
+
+details summary {
+  cursor: pointer;
+}
+
+details summary::-webkit-details-marker {
+  display: none;
+}
+
+
+/* ==========================================================================
+   Generic fixes
+   ========================================================================== */
+
+* {
+    @include box-sizing(border-box);
+}
+
+// always show the scroll-bar (stop the screen moving when it appears/disappers)
+html {overflow-y: scroll;}
+
+// ie image resizing
+img {
+-ms-interpolation-mode: bicubic;
+}
+
+// minor quirk in font-awesome's ADN icon position
+.icon-adn {
+    position: relative;
+    left: -0.02em;
+    top: -0.04em;
+}
+
+// font loading
+
+.wf-loading {
+  visibility: hidden;
+}
+.wf-active {
+  visibility: hidden;
+}

@@ -1,0 +1,40 @@
+// =====================================
+// LAYOUT HELPERS
+// =====================================
+
+/* ==========================================================================
+   *** LAYOUT HELPERS - DEBUGGING ONLY ***
+   ========================================================================== */
+
+// Layout Helpers
+
+html {
+  outline: 2px solid $black;
+}
+body {
+  outline: 2px dashed $lightgrey;
+}
+//div {
+//  outline: 1px dotted $lightgrey; 
+//}
+section {
+  outline: 1px dashed $red;
+}
+article {
+  outline: 1px dashed $green;
+}
+header {
+  outline: 1px dashed $blue;
+}
+footer {
+  outline: 1px dashed $blue;
+}
+nav {
+  outline: 1px dashed $cyan; 
+}
+//aside {
+//  outline: 1px dotted $red; 
+//}
+//time, address {
+//  outline: 1px dotted $blue; 
+//}

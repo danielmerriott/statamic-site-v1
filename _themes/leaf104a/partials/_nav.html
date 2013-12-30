@@ -1,0 +1,37 @@
+<nav role="navigation">
+
+  <div id="navbar">
+    <ul class="navlist">
+      <a href="{{ homepage }}"{{ if !segment_1 }} class="current"{{ endif }}><li>Home</li></a>
+      {{ nav from="/" }}
+      <a href="{{ url }}" {{ if is_current || is_parent }} class="current"{{ endif }}><li>{{ title }}</li></a>
+      {{ /nav }}
+    </ul>
+  </div><!-- END .navbar -->
+
+  <div id="navdrop">
+    <details >
+     <summary title="Click here for a drop-down list to help navigate the site">Navigation&nbsp;
+       <span class="burger icon-stack">
+       <i class="icon-light icon-stack-base icon-sign-blank"></i>
+       <i class="icon-green icon-large icon-reorder"></i>
+       </span>
+     </a></summary>
+  	  <ul class="navlist">
+  	    <a href="{{ homepage }}"{{ if !segment_1 }} class="current"{{ endif }}><li>Home</li></a>
+  	    {{ nav from="/" }}
+  	    <a href="{{ url }}" {{ if is_current || is_parent }} class="current"{{ endif }}><li>{{ title }}</li></a>
+  	    {{ /nav }}
+  	  </ul>
+    </details>
+  </div><!-- END .navdrop -->
+
+</nav>
+{{# 
+====================================
+  NOTES
+====================================
+
+This is the main nav partial, used to create a navigation menu.
+  
+#}}

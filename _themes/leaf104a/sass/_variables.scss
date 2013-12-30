@@ -1,0 +1,76 @@
+// =====================================
+// VARIABLES USED BY THE THEME
+// =====================================
+
+// ==========================
+// NORMALISE
+// ==========================
+
+// normalise:
+// Variables and Imports
+// @see http://compass-style.org/help/tutorials/best_practices/
+
+// Set this to true to force CSS output to exactly match normalize.css.
+$strict-normalize: true !default;
+
+// The default font family.
+$base-font-family: sans-serif !default;
+
+// The base font size.
+$base-font-size: 16px !default; // Override default set in Compass' Vertical Rhythm partial.
+
+// The base line height determines the basic unit of vertical rhythm.
+$base-line-height: 24px !default; // Override default set in Compass' Vertical Rhythm partial.
+
+// The font sizes for h1-h6.
+$h1-font-size: 2    * $base-font-size !default;
+$h2-font-size: 1.5  * $base-font-size !default;
+$h3-font-size: 1.17 * $base-font-size !default;
+$h4-font-size: 1    * $base-font-size !default;
+$h5-font-size: 0.83 * $base-font-size !default;
+$h6-font-size: 0.67 * $base-font-size !default;
+
+// The amount lists and blockquotes are indented.
+$indent-amount: 40px !default;
+
+// Set this to true to add support for IE 6.
+$legacy-support-for-ie6: false !default; // Override default set in Compass' Support partial.
+
+// Set this to true to add support for IE 7.
+$legacy-support-for-ie7: false !default; // Override default set in Compass' Support partial.
+
+// After the default variables are set, import the required Compass partials.
+// (moved to main scss file)
+
+
+// ==========================
+// COLOURS
+// ==========================
+
+// basic colours
+
+$red:          rgb(255, 0, 0);
+$green:        rgb(0, 255, 0);
+$blue:         rgb(0, 0, 255);
+$cyan:         rgb(0, 255, 255);
+$yellow:       rgb(255, 255, 0);
+$black:        rgb(0, 0, 0);
+$white:        rgb(255, 255, 255);
+
+// greyscale
+
+$darkgrey:     lighten($black, 25%);
+$grey:         lighten($black, 50%);
+$lightgrey:    lighten($black, 75%);
+$lightergrey:  lighten($black, 90%);
+
+// site colours
+
+$olbackground: $white;
+$oldarkgrey:   $darkgrey;
+$ollightgrey:  $lightgrey; 
+$oldarkgreen:  rgb(0, 100, 10); // logo 0,50,10
+$ollightgreen: rgb(70, 130, 5); // taken from logo
+$oltransgreen: rgba(0, 100 ,10, 0.20); // opaque version of oldarkgreen
+$olemphasis:   $ollightgreen;
+$olhighlight:  $ollightgrey;

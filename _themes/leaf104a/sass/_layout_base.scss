@@ -1,0 +1,223 @@
+// =====================================
+// LAYOUT RULES - BASE
+// =====================================
+
+/* ==========================================================================
+   *** LAYOUT - BASE ***
+   ========================================================================== */
+
+#container {
+		width: cols(12);
+		margin-left: auto;
+		margin-right: auto;
+}
+
+// page header
+
+header[role="banner"] {
+	clear: both;
+}
+
+#pageheader {
+	width: 100%;
+	height: auto;
+	position: relative;
+	overflow: hidden;
+	color: $white;
+}
+
+#pageheader a, #social a, #navbar a, #navdrop a {
+	text-decoration: none;
+	color: inherit;
+	&:visited { color: inherit;}
+	&:hover, &:active, &:focus { color: $ollightgrey; }
+}
+
+// banner
+
+
+
+#pagebanner {
+	float: left;
+	height: cols(1.5);
+	width: cols(4);
+	background-size: 100%;
+	overflow: hidden;
+	background: url("/assets/img/logo-green-400.png") top left no-repeat;
+}
+
+#pagebanner h1 {
+	// Hide the text
+    text-indent: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+}
+
+
+// social links
+
+#social {
+	position: relative;
+	float: right;
+}
+#socialbar {
+	display: inline;
+}
+#socialtitle {
+	font-size: 130%;
+	display: block;
+	float: left;
+	line-height: cols(1)*100/130;
+	vertical-align: middle;
+	padding-right: 0.3em;
+}
+#social ul {
+	margin: 0;
+	padding: 0;
+	display: inline;
+}
+#social li {
+	list-style: none;
+	text-align: right;
+	float: left;
+	margin: 0;
+	width: cols(1);
+	height: cols(1);
+}
+#social a {
+	font-size: 130%;
+	display: block;
+	&:hover, &:active, &:focus { color: $ollightgreen; }
+}
+//.icon-stack-top {
+//	position: relative;
+//	top: -0.2em;
+//}
+
+
+
+// navigation
+
+#navbar {
+	clear: both;
+	min-height: cols(1);
+	overflow: visible;
+	width: 100%;
+	margin: 0 0 $gutter 0;
+	padding: 0;
+	color: $white;
+    background-color: $oldarkgreen;
+	@include background-image(linear-gradient($ollightgreen, $oldarkgreen));
+}
+#navbar ul {
+	padding: 0;
+	margin: 0;
+}
+#navbar li, #navdrop li {
+	list-style: none;
+}
+
+#navdrop {
+	clear: both;
+	text-align: right;
+	min-height: cols(1);
+	width: 100%;
+	margin: 0 0 $gutter 0;
+	padding: 0;
+	color: $white;
+    background-color: $oldarkgreen;
+	@include background-image(linear-gradient($ollightgreen, $oldarkgreen));
+}
+#navdrop summary {
+	font-size: 130%;
+	padding: 0.1em 0.3em 0.1em 0.1em;
+	outline: none;
+}
+#navdrop details[open] summary {
+}
+#navdrop li::selection, #navdrop li::-moz-selection {
+	background: transparent;
+}
+#navdrop li {
+		padding: 0 1em;
+}
+
+
+// main section
+#main {
+	width: 100%;
+	clear: left;
+}
+
+
+// page footer
+
+footer[role="contentinfo"] {
+	clear: both;
+}
+
+#pagefooterbar {
+	width: 100%;
+	height: cols(1);
+	background-color: $oldarkgreen;
+	color: $white;
+	margin-top: $gutter;
+	margin-bottom: $gutter;
+	@include background-image(linear-gradient($ollightgreen, $oldarkgreen));
+}
+
+#pagefooterbar a {
+	text-decoration: none;
+	color: inherit;
+	&:visited { color: inherit;}
+	&:hover, &:active, &:focus { color: $ollightgrey; }
+}
+#pagefooterbar div {
+	display: inline-block;
+	float: left;
+	margin-right: $gutter;
+	padding: $column/4 0;
+
+}
+
+#copyright {
+
+}
+
+#filedate {
+	position: relative;
+	float: right;
+}
+
+#pagefooterbelow {
+	color: $oldarkgreen;
+}
+
+#pagefooterbelow div {
+	display: inline-block;
+	float: left;
+	margin-right: $gutter;
+}
+
+#pagefooterbelow {
+	text-decoration: none;
+	color: inherit;
+	&:visited { color: inherit;}
+	&:hover, &:active, &:focus { color: $ollightgrey; }
+}
+
+#privacy {
+
+}
+
+#statamic {
+
+}
+
+
+///* Retina Pick */
+//@media 
+//(-webkit-min-device-pixel-ratio: 1.5), 
+//(min-resolution: 144dpi) { 
+//   /* Retina-specific stuff here */
+//}

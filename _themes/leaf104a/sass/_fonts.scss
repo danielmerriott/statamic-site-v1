@@ -1,0 +1,76 @@
+// =====================================
+// FONTS USED IN THE THEME
+// =====================================
+
+/* ==========================================================================
+   *** FONTS ***
+   ========================================================================== */
+
+//
+// Web Fonts from fontspring.com
+//
+// All OpenType features and all extended glyphs have been removed.
+// Fully installable fonts can be purchased at http://www.fontspring.com
+//
+// The fonts included in this stylesheet are subject to the End User License you purchased
+// from Fontspring. The fonts are protected under domestic and international trademark and 
+// copyright law. You are prohibited from modifying, reverse engineering, duplicating, or
+// distributing this font software.
+//
+// (c) 2010-2013 Fontspring
+//
+// The fonts included are copyrighted by the vendor listed below.
+//
+// Vendor:      Mostardesign
+// License URL: http://www.fontspring.com/fflicense/mostardesign
+//
+//
+
+
+// Interval Light
+@font-face {
+    font-family: 'IntervalLight';
+    src: url('/assets/fonts/interval-light.eot');
+    src: url('/assets/fonts/interval-light?#iefix') format('embedded-opentype'),
+         url('/assets/fonts/interval-light.svg#IntervalLight') format('svg'),
+         url('/assets/fonts/interval-light.woff') format('woff'),
+         url('/assets/fonts/interval-light.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+// Interval Light Italic
+@font-face {
+    font-family: 'IntervalLightItalic';
+    src: url('/assets/fonts/Interval-Light-italic.eot');
+    src: url('/assets/fonts/interval-light-italic?#iefix') format('embedded-opentype'),
+         url('/assets/fonts/interval-light-italic.svg#IntervalLightItalic') format('svg'),
+         url('/assets/fonts/interval-light-italic.woff') format('woff'),
+         url('/assets/fonts/interval-light-italic.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+// Interval Medium
+@font-face {
+    font-family: 'IntervalMedium';
+    src: url('/assets/fonts/interval-medium.eot');
+    src: url('/assets/fonts/interval-medium?#iefix') format('embedded-opentype'),
+         url('/assets/fonts/interval-medium.svg#IntervalMedium') format('svg'),
+         url('/assets/fonts/interval-medium.woff') format('woff'),
+         url('/assets/fonts/interval-medium.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}
+
+// Interval Medium Italic
+@font-face {
+    font-family: 'IntervalMediumItalic';
+    src: url('/assets/fonts/interval-medium.eot');
+    src: url('/assets/fonts/interval-medium?#iefix') format('embedded-opentype'),
+         url('/assets/fonts/interval-medium.svg#IntervalMediumItalic') format('svg'),
+         url('/assets/fonts/interval-medium.woff') format('woff'),
+         url('/assets/fonts/interval-medium.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+}

@@ -1,0 +1,28 @@
+// =====================================
+// MIXINS USED IN THE THEME
+// =====================================
+
+// normalise:
+@import "compass/support";
+@import "compass/css3/box-sizing";
+@import "compass/typography/vertical_rhythm";
+
+// base:
+@import "compass/typography/links";
+
+
+
+// custom mixins:
+
+@mixin anirotate($deg, $sec) {
+  transition: 2s;
+  transform: rotate($deg);
+  /*Firefox*/
+  -moz-transform: rotate($deg);
+  /*Microsoft Internet Explorer*/
+  -ms-transform: rotate($deg);
+  /*Chrome, Safari*/
+  -webkit-transform: rotate($deg);
+  /*Opera*/
+  -o-transform: rotate($deg);
+}

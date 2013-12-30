@@ -1,0 +1,42 @@
+include: meta                  # include the meta fields
+hide: yes
+
+fields:
+  title:
+    default: Article Title
+    instructions: "Enter the main article title here."
+
+  status:
+    display: Status
+    type: status
+    instructions: "Select if the article is live (displays on the site), hidden/draft (will not display on the site)."
+
+  categories:
+    display: Categories
+    type: tags
+    instructions: "Add categories."
+    
+  tags:                        # the template tag name -- in this example, {{ tags }}
+    display: Tags              # the control panel field label (optional)
+    required: false            # required: true/false for validation (optional, false by default)
+    default:                   # default value (optional)
+    type: tags                 # fieldtype (optional, text by default)
+    instructions: Add tags.    # instructions added above the field
+
+  main_img:
+    display: Article Main Image
+    type: file
+    destination: assets/img/blog  #make sure the folder exists and is writeable
+    instructions: "Add the main image for the article here, this will also display as a thumbnail on the article listing page."
+        
+  summary:
+    display: Summary
+    required: true
+    type: textarea
+    instructions: "Add a short summary for the article here."
+    
+  content:
+    display: Article Content
+    type: redactor
+    image_dir: assets/img/blog  #make sure the folder exists and is writeable
+    instructions: "Add the main article content here."

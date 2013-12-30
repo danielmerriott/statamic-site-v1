@@ -1,0 +1,35 @@
+// =====================================
+// LAYOUT RULES - HUGE SCREEN
+// =====================================
+
+/* ==========================================================================
+   *** LAYOUT - HUGE SCREEN - 26 COLUMNS ***
+   ========================================================================== */
+
+//	Huge-screen layout
+//	1888 px and above
+//	Zoomed in above 2160 px
+
+// zoom in above 2160 px
+@media screen and (min-width: 135em) {
+	body {font-size: ($base-font-size + 1);}}
+
+// zoom in further above 2400 px
+@media screen and (min-width: 150em) {
+	body {font-size: ($base-font-size + 2);}}
+
+// layout for huge screens
+@media screen and (min-width: 118em) {
+
+	/* 26 column layout */
+	#container {
+			width: cols(26);
+			margin-left: auto;
+			margin-right: auto;
+	}
+
+	/* nav */
+	#navdrop { display: none; }
+	#navbar { display: block; }
+
+}

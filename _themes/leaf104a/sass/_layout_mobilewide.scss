@@ -1,0 +1,44 @@
+// =====================================
+// LAYOUT RULES - WIDE MOBILE
+// =====================================
+
+/* ==========================================================================
+   *** LAYOUT - WIDE MOBILE - 6 COLUMNS ***
+   ========================================================================== */
+
+//	Wide mobile layout 
+//	480-679 px
+//	Zoomed in above 520 px
+
+// zoom in between 520 and 599 px
+@media screen and (min-width: 32.5em) and (max-width: 42.4375em) {
+	body {font-size: ($base-font-size + 1);}}
+
+// wide mobile layout
+@media screen and (min-width: 30em) {
+
+	/* 6 column layout */
+	#container {
+			width: cols(6);
+			margin-left: auto;
+			margin-right: auto;
+	}
+	
+	/* banner */
+
+	#pagebanner {
+		float: left;
+		height: cols(2);
+		width: cols(6);
+		background: url("/assets/img/logo-green-800.png") top left no-repeat;
+		background-size: 100%;
+		overflow: hidden;
+		margin: 0 $gutter $gutter/2 0;
+	}
+
+	/* nav */
+	#navdrop { display: block; }
+	#navbar { display: none; }
+
+}
+

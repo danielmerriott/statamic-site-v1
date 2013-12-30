@@ -1,0 +1,64 @@
+<div id="pagefooter">
+<footer>
+  <div id="pagefooterbar">
+
+    {{ if show_footerimg }}
+    <div id="footerimg">
+    </div><!-- END .footerimg -->
+    {{ endif }}
+
+    {{ if show_copyright }}
+    <!-- Copyright Information -->
+    <div id="copyright">
+    <a href="{{ if copyright_url }}{{ copyright_url }}{{ else }}{{ _site_url }}{{ endif }}" title="Copyright information">
+    <strong>&copy;</strong>&nbsp;
+    {{ if copyright_start }}
+    	{{ if {current_date format="Y"} > copyright_start }}
+  	  {{ copyright_start }}-{{ current_date format="Y" }}
+  	{{ else }}
+  	  {{ current_date format="Y" }}
+  	{{ endif }}
+    {{ else }}
+    	{{ current_date format="Y" }}	
+    {{ endif }}
+    {{ if copyright_holder }}{{ copyright_holder }}{{ else }}{{ _site_name }}{{ endif }}</a>
+    </div><!-- END .copyright -->
+    {{ endif }}
+
+     {{ if show_lastmodified }}
+     <!-- Source File Last Modified -->
+       <div id="filedate"><i class="icon-info-sign" title="File last modified: {{ last_modified format="jS F Y H:i:s" }}"></i></div><!-- END .filedate -->
+     {{ endif }}
+
+  </div>
+
+  <div id="pagefooterbelow">
+
+    {{ if show_privacy }}
+    <!-- Privacy Statement Link -->
+    <div id="privacy">
+    <a href="{{ if privacy_url }}{{ privacy_url }}{{ else }}/privacy{{ endif }}" title="Site privacy information">Privacy</a>
+    </div><!-- END .privacy -->
+    {{ endif }}
+
+    {{ if show_statamic }}
+    <!-- Statamic Credit -->
+    <div id="statamic">
+    <a href="http://statamic.com" title="Powered by {{ noparse }}{{ statamic }}{{ /noparse }}">
+    Powered by <strong>{{ noparse }}{{ statamic }}{{ /noparse }}</strong></a>
+    </div><!-- END .statamic -->
+    {{ endif }}
+
+   </div>
+ 
+</footer>  
+</div><!-- END .page-footer -->
+  
+{{# 
+====================================
+  NOTES
+====================================
+
+This is the main footer partial.
+
+#}}
