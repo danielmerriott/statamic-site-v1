@@ -1,0 +1,63 @@
+#
+# Generic
+#
+
+# Mac OS X hidden files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Mac OS X Icon must ends with two \r.
+Icon
+
+# Mac OS X Thumbnails
+._*
+
+# Mac OS X Files that might appear on external disk
+.Spotlight-V100
+.Trashes
+
+# Windows image file caches
+Thumbs.db
+ehthumbs.db
+
+# Windows Folder config file
+Desktop.ini
+
+# Windows Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Vim swap files
+[._]*.s[a-w][a-z]
+[._]s[a-w][a-z]
+*.un~
+Session.vim
+.netrwhist
+*~
+
+# Sass cache folder
+*.sass-cache
+
+#
+# Statamic
+#
+
+# ignore _logs as we don't want these to be version controlled
+_logs/
+ 
+# ignore _content and assets as these are tracked elsewhere
+_content/
+assets/
+ 
+# ignore contents of _cache as we want this empty on each new deployment
+# make sure there is a .gitkeep file in the here though
+_cache/
+ 
+# must be the last rule … allow .gitkeep file to ensure an 'empty' directory is kept
+!.gitkeep
