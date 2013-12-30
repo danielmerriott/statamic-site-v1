@@ -44,6 +44,9 @@ Session.vim
 # Sass cache folder
 *.sass-cache
 
+# Readme files
+readme.*
+
 #
 # Statamic
 #
