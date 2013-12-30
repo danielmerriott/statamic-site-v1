@@ -52,7 +52,7 @@ readme.*
 #
 
 # ignore _logs as we don't want these to be version controlled
-_logs/*
+/_logs/*
  
 # ignore _content and assets as these are tracked elsewhere
 # if these are symlinked then comment these links out
