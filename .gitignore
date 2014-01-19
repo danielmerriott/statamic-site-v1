@@ -55,8 +55,8 @@ Session.vim
  
 # ignore _content and assets as these are tracked elsewhere
 # if these are symlinked then comment these links out
-/_content
-/assets
+/_content/*
+/assets/*
  
 # ignore contents of _cache as we want this empty on each new deployment
 # make sure there is a .gitkeep file in the here though
