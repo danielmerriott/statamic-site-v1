@@ -52,7 +52,12 @@ class statamic_fieldset
           }
         }
 
-        $fields['fields'] = array_merge($fields['fields'], $included_fields['fields'], $meta['fields']);
+        // Merge it all together
+        $fields['fields'] = array_merge($fields['fields'], $included_fields['fields']);
+        if (is_array(array_get($meta, 'fields', array()))) {
+          $fields['fields'] = array_merge($fields['fields'], $meta['fields']);
+        }
+
         $fieldset_names[] = $name;
       }
     }
@@ -65,14 +70,16 @@ class statamic_fieldset
 
   public static function fetch_fieldset($fieldset)
   {
+    $defaults = array('fields' => array());
+
     if (File::exists("_config/fieldsets/{$fieldset}.yaml")) {
       $meta_raw = file_get_contents("_config/fieldsets/{$fieldset}.yaml");
-      $meta = YAML::Parse($meta_raw);
+      $meta = array_merge($defaults, YAML::Parse($meta_raw));
 
       return $meta;
     }
 
-    return false;
+    return $defaults;
   }
 
   public static function get_list()

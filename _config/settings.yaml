@@ -13,7 +13,7 @@
 ###########################################################################################
 
 # Enter your license key
-_license_key: adf12bdb-3668-4a42-b085-da6a61b20358
+_license_key:
 
 _language: en
 
@@ -21,28 +21,28 @@ _language: en
 _site_root: /
 
 # Name of your site
-_site_name: Openleaf
+_site_name: Another Awesome Statamic Site
 
 # Change the folder name for your content directory
 _content_root: _content
 
 # Used for permalinks
-_site_url: http://openleaf.co.nz
+_site_url: http://statamic.com
 
 # Folder name of your desired theme
-_theme: leaf104a
+_theme: denali
 
 # Entries should include timestamp YYYY-MM-DD-HHII
 _entry_timestamps: false
 
 # Global formatting for {{ date }} variables
-_date_format: 'jS F Y'
+_date_format: 'F jS, Y'
 
 # Global formatting for time variables
-_time_format: 'H:i:s'
+_time_format: 'g:i.s a'
 
 # Timezone
-_timezone: Pacific/Auckland
+_timezone: America/New_York
 
 # List of desired taxonomy triggers
 _taxonomy:
@@ -50,9 +50,9 @@ _taxonomy:
   - tags
 
 # Turns your slugs into pretty urls (spaces become "-" instead of %20)
-_taxonomy_slugify: true
+_taxonomy_slugify: false
 
-# Make taxonomy values case sensitive (when true, "example" != "Example")
+# Make taxonomy values case sensitive (when true, "example" would *not* match "Example")
 _taxonomy_case_sensitive: false
 
 # Converts the display of taxonomies to lowercase
@@ -61,11 +61,10 @@ _taxonomy_force_lowercase: true
 # Choose your content parsing syntax
 # Your available options:
 #  - markdown
-#  - markdown_edge (extra, experimental features!)
 #  - textile
 #  - html
 #  - txt
-_content_type: markdown_edge
+_content_type: markdown
 
 # enable SmartyPants to translate plain punctuation into “smart” HTML entities
 _enable_smartypants: true
@@ -73,8 +72,11 @@ _enable_smartypants: true
 # set to 'true' to enable theme caching busting based on last modified timestamps
 _theme_cache_bust: false
 
+# Specify where to save transformed images
+_transform_destination: false
+
 # allow the use of PHP in Statamic templates
-_allow_php: true
+_allow_php: false
 
 # Choose your YAML mode:
 #  - loose (YAML 1.0)
@@ -101,10 +103,11 @@ _fix_out_of_range_pagination: true
 # a matching URL, we'll merge the environment-specific config from _config/environments
 _environments:
   dev:
-    - 'http://dev.openleaf.co.nz'
-    - 'http://draft.openleaf.co.nz'
+    - 'http://localhost*'
+    - '*.dev'
+    - '*.localip'
   live:
-    - 'http://openleaf.co.nz'
+    - '*.com'
 
 # Set to 'true' if you want to log system messages
 _log_enabled: true
@@ -117,7 +120,7 @@ _log_enabled: true
 #  - error
 #  - fatal  (this is the most-serious level of logged message)
 # Levels less-serious than what you pick will be ignored
-_log_level: debug
+_log_level: info
 
 # Path to your log file
 #  - to define a path absolutely, start your path with a /
@@ -142,7 +145,7 @@ _admin_enabled: true
 _admin_path: admin
 
 # Folder name of your desired control panel theme
-_admin_theme: trailhead
+_admin_theme: ascent
 
 # Customize which pages show in the control panel
 _admin_nav:
@@ -159,11 +162,17 @@ _admin_nav:
 # When you log in, where would you like to start?
 _admin_start_page: pages
 
-# Change this to make your site more secure
-_cookies.secret_key: rk4~M);*^7QDT9UyA&(LId>A_7@OJp(FvvC6l30)O6=yYT4UV0=~CYWQU #changeme!
+# Enable/Disable the ability to add new top level pages via the CP
+_enable_add_top_level_page: true
+
+# Enable/Disable the ability to add new child pages via the CP
+_enable_add_child_page: true
+
+# Enable/Disable the ability to delete pages via the CP
+_enable_delete_page: true
 
 # plain english works just fine here.
-_cookies.lifetime: 1 months
+_cookies.lifetime: 3 months
 
 # For advanced users only. Here be dragons.
 _cookies.cipher: MCRYPT_RIJNDAEL_256
@@ -179,4 +188,4 @@ _cookies.cipher_mode: MCRYPT_MODE_CBC
 # The folder name of your publicly accessible directory. Usually something like
 # public, www, htdocs, or httpdocs. Leave this blank unless you're running above web root
 
-_public_path:
+_public_path: 

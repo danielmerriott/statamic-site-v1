@@ -59,9 +59,12 @@ class Plugin_simplepie extends Plugin {
 
         if ($loop_count >= $limit) break;
       }
+
       return $output;
+    }
+
+    return '';
   }
-  return '';
 
   public function feed()
   {

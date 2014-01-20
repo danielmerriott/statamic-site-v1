@@ -25,7 +25,7 @@ class HTML
         return htmlentities($value, ENT_QUOTES, Config::get('encoding', 'UTF-8'), FALSE);
     }
 
-    
+
     /**
      * Convert entities to HTML characters.
      *
@@ -37,7 +37,7 @@ class HTML
         return html_entity_decode($value, ENT_QUOTES, Config::get('encoding', 'UTF-8'));
     }
 
-    
+
     /**
      * Convert HTML special characters.
      *
@@ -51,7 +51,7 @@ class HTML
         return htmlspecialchars($value, ENT_QUOTES, Config::get('encoding', 'UTF-8'), FALSE);
     }
 
-    
+
     /**
      * Generate a link to a JavaScript file.
      *
@@ -74,7 +74,7 @@ class HTML
         return '<script src="' . $url . '"' . static::buildAttributes($attributes) . '></script>' . PHP_EOL;
     }
 
-    
+
     /**
      * Generate a link to a CSS file.
      *
@@ -103,7 +103,7 @@ class HTML
         return '<link href="' . $url . '"' . static::buildAttributes($attributes) . '>' . PHP_EOL;
     }
 
-    
+
     /**
      * Generate a HTML link.
      *
@@ -130,7 +130,7 @@ class HTML
         return '<a href="' . $url . '"' . static::buildAttributes($attributes) . '>' . static::convertEntities($title) . '</a>';
     }
 
-    
+
     /**
      * Generate a HTTPS HTML link.
      *
@@ -219,12 +219,12 @@ class HTML
     /**
      * Generate an ordered or unordered list.
      *
-     * @param  string  $type  Type of list to create (ol|ul) 
+     * @param  string  $type  Type of list to create (ol|ul)
      * @param  array   $list  List of items to list
      * @param  array   $attributes  List of attributes to include in the list tag
      * @return string
      */
-    private static function makeList($type, $list, $attributes = array())
+    public static function makeList($type, $list, $attributes = array())
     {
         $html = '';
 
@@ -246,6 +246,42 @@ class HTML
         }
 
         return '<' . $type . static::buildAttributes($attributes) . '>' . $html . '</' . $type . '>';
+    }
+
+    /**
+     * Generate an input.
+     *
+     * @param  string  $type  Type of input to create (text, email, etc)
+     * @param  array   $attributes  List of attributes to include in the input tag
+     * @return string
+     */
+    public static function makeInput($type, $attributes = array(), $is_required = false)
+    {
+        $attributes = array_merge($attributes, compact($type));
+
+        if ($is_required) {
+
+            $attributes = array_merge($attributes, array('data-required' => 'true'));
+        }
+
+        return '<input type="' . $type . '"' . self::buildAttributes($attributes) . ' />';
+    }
+
+
+    /**
+     * Generate a textarea.
+     *
+     * @param  array   $attributes  List of attributes to include in the input tag
+     * @return string
+     */
+    public static function makeTextarea($value = '', $attributes = array(), $is_required = false)
+    {
+
+        if ($is_required) {
+            $attributes = array_merge($attributes, array('data-required' => 'true'));
+        }
+
+        return '<textarea ' . self::buildAttributes($attributes) . ' />'. $value .'</textarea>';
     }
 
     /**

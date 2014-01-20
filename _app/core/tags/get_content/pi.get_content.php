@@ -1,37 +1,43 @@
 <?php
 class Plugin_get_content extends Plugin
 {
-  public function index()
-  {
-    $from = $this->fetchParam('from', false); // defaults to null
+    public function index()
+    {
+        $from = $this->fetchParam('from', false); // defaults to null
 
-    if ($from) {
-      $data = null;
-      $content_root = Config::getContentRoot();
-      $content_type = Config::getContentType();
+        if (!$from) {
+            return null;
+        }
+        
+        $from = Path::addStartingSlash($from);
+        $from = (strlen($from) > 1) ? rtrim($from, "/") : $from;
 
-      if (File::exists("{$content_root}/{$from}.{$content_type}") || is_dir("{$content_root}/{$from}")) {
-        // endpoint or folder exists!
-      } else {
-        $from = Path::resolve($from);
-      }
+        $content_set = ContentService::getContentByURL($from);
 
-      if (File::exists("{$content_root}/{$from}.{$content_type}")) {
-        // @todo: Load Post if a date/numerical entry, else page
-        $page     = basename($from);
-        $folder   = substr($from, 0, (-1*strlen($page))-1);
+        // filter
+        $content_set->filter(array(
+            'show_hidden' => $this->fetchParam('show_hidden', false, null, true, false),
+            'show_drafts' => $this->fetchParam('show_drafts', false, null, true, false),
+            'show_past'   => $this->fetchParam('show_past', true, null, true),
+            'show_future' => $this->fetchParam('show_future', false, null, true),
+            'type'        => 'all',
+            'conditions'  => trim($this->fetchParam('conditions', null, false, false, false))
+        ));
+        
+        // limit
+        $limit  = $this->fetchParam('limit', 1, 'is_numeric');
+        $offset = $this->fetchParam('offset', 0, 'is_numeric');
+        
+        $content_set->limit($limit, $offset);
+        
+        // check for results
+        if (!$content_set->count()) {
+            return Parse::tagLoop($this->content, array(array('no_results' => true)));
+        }
 
-        $data = Statamic::get_content_meta($page, $folder);
-      } elseif (is_dir("{$content_root}/{$from}")) {
-        $data = Statamic::get_content_meta("page", $from);
-      }
-
-      if ($data) {
-        return $data;
-      }
+        // if content is used in this entries loop, parse it
+        $parse_content = (bool) preg_match(Pattern::USING_CONTENT, $this->content);
+        return Parse::tagLoop($this->content, $content_set->get($parse_content));
     }
-
-    return "";
-  }
 
 }

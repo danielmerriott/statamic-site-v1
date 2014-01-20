@@ -23,7 +23,13 @@ class ContentService
         }
 
         self::$cache_loaded = true;
-        self::$cache = unserialize(File::get(BASE_PATH . "/_cache/_app/content/content.php"));
+        self::$cache = unserialize(File::get(Path::tidy(BASE_PATH . "/_cache/_app/content/content.php")));
+
+        if (!is_array(self::$cache)) {
+            // something has gone wrong, log a message and set to an empty array
+            self::$cache = array();
+            Log::fatal('Could not find or access your cache.', 'core', 'ContentService');
+        }
     }
 
 
@@ -51,7 +57,7 @@ class ContentService
      * Gets cached content for one page based on a given URL
      *
      * @param string  $url  URL of content to load
-     * @return mixed
+     * @return array
      */
     public static function getContent($url)
     {
@@ -71,7 +77,7 @@ class ContentService
     /**
      * Gets a list of taxonomy values by type
      *
-     * @param array  $type  Taxonomy type to retrieve
+     * @param string  $type  Taxonomy type to retrieve
      * @return TaxonomySet
      */
     public static function getTaxonomiesByType($type)
@@ -81,7 +87,7 @@ class ContentService
 
         // taxonomy type doesn't exist, return empty
         if (!isset(self::$cache['taxonomies'][$type])) {
-            return array();
+            return new TaxonomySet(array());
         }
 
 
@@ -96,13 +102,14 @@ class ContentService
 
         foreach ($values as $key => $parts) {
             $set = array();
-            $prepared_key = ($slugify) ? Slug::make($key) : urlencode($key);
+
+            $prepared_key = ($slugify) ? Slug::make($key) : rawurlencode($key);
 
             foreach ($parts['files'] as $url) {
                 if (!isset(self::$cache['urls'][$url])) {
                     continue;
                 }
-                
+
                 $set[$url] = self::$cache['content'][self::$cache['urls'][$url]];
             }
 
@@ -236,21 +243,9 @@ class ContentService
     public static function getContentByFolders($folders)
     {
         self::loadCache();
-
-        $data = array();
-        $folders = Helper::parseForFolders($folders);
-
-        // loop over all the data we have
-        foreach (self::$cache['content'] as $content) {
-            // we only want content from the folder requested, not subfolders
-            // to do this, we check that:
-            //   - the url starts with the folder requested
-            //   - after removing the folder requested, there aren't still slashes (subfolders) in the url
-            if (in_array($content['_folder'], $folders)) {
-                $data[] = $content;
-            }
-        }
-
-        return new ContentSet($data);
+        
+        $content_set = new ContentSet(array_values(self::$cache['content']));
+        $content_set->filter(array("folders" => Helper::parseForFolders($folders)));
+        return $content_set;
     }
 }

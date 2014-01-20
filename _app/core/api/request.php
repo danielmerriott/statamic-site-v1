@@ -38,6 +38,23 @@ class Request
 
 
     /**
+     * Returns a $_POST variable value if set, falling back to $_GET, or $default if not available
+     *
+     * @param string  $key  Key to retrieve
+     * @param mixed  $default  Default value if no POST or GET variable is set
+     * @return mixed
+     */
+    public static function fetch($key, $default=NULL)
+    {
+        return Helper::pick(
+            self::post($key, $default),
+            self::get($key, $default),
+            $default
+        );
+    }
+
+
+    /**
      * Returns a $_PUT variable value, or $default if not available
      *
      * @param string  $key  Key to retrieve
@@ -190,7 +207,7 @@ class Request
      */
     public static function getPath($default=NULL)
     {
-        return Helper::pick(\Slim\Slim::getInstance()->request()->getPath(), $default);
+        return Helper::pick(URL::sanitize(\Slim\Slim::getInstance()->request()->getPath()), $default);
     }
 
 
@@ -202,7 +219,7 @@ class Request
      */
     public static function getURL($default=NULL)
     {
-        return Helper::pick(\Slim\Slim::getInstance()->request()->getUrl(), $default);
+        return Helper::pick(URL::sanitize(\Slim\Slim::getInstance()->request()->getUrl()), $default);
     }
 
 
@@ -226,7 +243,7 @@ class Request
      */
     public static function getReferrer($default=NULL)
     {
-        return Helper::pick(\Slim\Slim::getInstance()->request()->getReferrer(), $default);
+        return Helper::pick(URL::sanitize(\Slim\Slim::getInstance()->request()->getReferrer()), $default);
     }
 
 
@@ -250,6 +267,6 @@ class Request
      */
     public static function getResourceURI($default=NULL)
     {
-        return Helper::pick(\Slim\Slim::getInstance()->request()->getResourceUri(), $default);
+        return Helper::pick(URL::sanitize(\Slim\Slim::getInstance()->request()->getResourceUri()), $default);
     }
 }

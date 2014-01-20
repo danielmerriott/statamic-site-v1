@@ -16,13 +16,16 @@ class Localization
      *
      * @param $key      string  YAML key of the desired text string
      * @param $language string  Optionally override the desired language
+     * @param $lower    boolean  Convert word to lowercase?
      * @return mixed
      */
-    public static function fetch($key, $language = null)
+    public static function fetch($key, $language = null, $lower = false)
     {
         $app = \Slim\Slim::getInstance();
 
         $language = $language ? $language : Config::getCurrentLanguage();
+
+        $value = $key;
 
         /*
         |--------------------------------------------------------------------------
@@ -35,7 +38,9 @@ class Localization
         */
 
         if ( ! isset($app->config['_translations'][$language])) {
-            $app->config['_translations'][$language] = YAML::parse(Config::getTranslation($language));
+            if (File::exists(Config::getTranslation($language))) {
+                $app->config['_translations'][$language] = YAML::parse(Config::getTranslation($language));
+            }
         }
 
         /*
@@ -48,10 +53,28 @@ class Localization
         |
         */
 
-        if (array_get($app->config['_translations'][$language]['translations'], $key, false)) {
-            return array_get($app->config['_translations'][$language]['translations'], $key);
+        if (array_get($app->config['_translations'], $language.':translations:'.$value, false)) {
+            $value = array_get($app->config['_translations'][$language]['translations'], $value);
+        } else {
+            $value = array_get($app->config['_translations']['en']['translations'], $value, $value);
         }
 
-        return array_get($app->config['_translations']['en']['translations'], $key, $key);
+        return ($lower) ? strtolower($value) : $value;
+    }
+    
+    
+    /**
+     * Initializes localization, overwriting any in-code defaults
+     * 
+     * @return void
+     */
+    public static function initialize()
+    {
+        // update publication states
+        Statamic::$publication_states = array(
+            'live'   => self::fetch('live'),
+            'hidden' => self::fetch('hidden'),
+            'draft'  => self::fetch('draft')
+        );
     }
 }

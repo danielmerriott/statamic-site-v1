@@ -31,7 +31,10 @@ class Hooks_tasks extends Hooks
 
         // grab all task files
         $finder     = new Finder();
-        $task_files = $finder->files()->in(Config::getAddOnsPath())->name("tasks.*.php");
+        $task_files = $finder->files()
+            ->in(BASE_PATH . Config::getAddOnsPath())
+            ->name("tasks.*.php")
+            ->followLinks();
 
         // mark this tick as having happened
         $this->cache->putYAML('ticks.yaml', array("last-tick" => $now));

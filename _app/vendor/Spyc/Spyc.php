@@ -1,7 +1,7 @@
 <?php
 /**
    * Spyc -- A Simple PHP YAML Class
-   * @version 0.5
+   * @version 0.5.1
    * @author Vlad Andersen <vlad.andersen@gmail.com>
    * @author Chris Wanstrath <chris@ozmm.org>
    * @link http://code.google.com/p/spyc/
@@ -29,6 +29,17 @@ if (!function_exists('spyc_load_file')) {
    */
   function spyc_load_file ($file) {
     return Spyc::YAMLLoad($file);
+  }
+}
+
+if (!function_exists('spyc_dump')) {
+  /**
+   * Dumps array to YAML.
+   * @param array $data Array.
+   * @return string
+   */
+  function spyc_dump ($data) {
+    return Spyc::YAMLDump($data, false, false, true);
   }
 }
 
@@ -183,10 +194,11 @@ class Spyc {
      * @param array $array PHP array
      * @param int $indent Pass in false to use the default, which is 2
      * @param int $wordwrap Pass in 0 for no wordwrap, false for default (40)
+     * @param int $no_opening_dashes Do not start YAML file with "---\n"
      */
-  public static function YAMLDump($array,$indent = false,$wordwrap = false) {
+  public static function YAMLDump($array, $indent = false, $wordwrap = false, $no_opening_dashes = false) {
     $spyc = new Spyc;
-    return $spyc->dump($array,$indent,$wordwrap);
+    return $spyc->dump($array, $indent, $wordwrap, $no_opening_dashes);
   }
 
 
@@ -210,7 +222,7 @@ class Spyc {
      * @param int $indent Pass in false to use the default, which is 2
      * @param int $wordwrap Pass in 0 for no wordwrap, false for default (40)
      */
-  public function dump($array,$indent = false,$wordwrap = false) {
+  public function dump($array,$indent = false,$wordwrap = false, $no_opening_dashes = false) {
     // Dumps to some very clean YAML.  We'll have to add some more features
     // and options soon.  And better support for folding.
 
@@ -228,7 +240,8 @@ class Spyc {
     }
 
     // New YAML document
-    $string = "---\n";
+    $string = "";
+    if (!$no_opening_dashes) $string = "---\n";
 
     // Start at the base of the array and move through it.
     if ($array) {
@@ -312,6 +325,7 @@ class Spyc {
     }
 
     if ($value === array()) $value = '[ ]';
+    if ($value === "") $value = '""';
     if (in_array ($value, array ('true', 'TRUE', 'false', 'FALSE', 'y', 'Y', 'n', 'N', 'null', 'NULL'), true)) {
        $value = $this->_doLiteralBlock($value,$indent);
     }
@@ -382,6 +396,8 @@ class Spyc {
     } else {
       if ($this->setting_dump_force_quotes && is_string ($value) && $value !== self::REMPTY)
         $value = '"' . $value . '"';
+      if (is_numeric($value) && is_string($value))
+        $value = '"' . $value . '"';
     }
 
 
@@ -403,7 +419,7 @@ class Spyc {
   private function loadWithSource($Source) {
     if (empty ($Source)) return array();
     if ($this->setting_use_syck_is_possible && function_exists ('syck_load')) {
-      $array = syck_load (implode ('', $Source));
+      $array = syck_load (implode ("\n", $Source));
       return is_array($array) ? $array : array();
     }
 
@@ -433,17 +449,15 @@ class Spyc {
         $i--;
       }
 
+      // Strip out comments
+      if (strpos ($line, '#')) {
+          $line = preg_replace('/\s*#([^"\']+)$/','',$line);
+      }
+
       while (++$i < $cnt && self::greedilyNeedNextLine($line)) {
         $line = rtrim ($line, " \n\t\r") . ' ' . ltrim ($Source[$i], " \t");
       }
       $i--;
-
-
-
-      if (strpos ($line, '#')) {
-        if (strpos ($line, '"') === false && strpos ($line, "'") === false)
-          $line = preg_replace('/\s+#(.+)$/','',$line);
-      }
 
       $lineArray = $this->_parseLine($line);
 
@@ -463,7 +477,7 @@ class Spyc {
 
   private function loadFromSource ($input) {
     if (!empty($input) && strpos($input, "\n") === false && file_exists($input))
-    return file($input);
+      $input = file_get_contents($input);
 
     return $this->loadFromString($input);
   }
@@ -519,7 +533,7 @@ class Spyc {
      * @return mixed
      */
   private function _toType($value) {
-    if ($value === '') return null;
+    if ($value === '') return "";
     $first_character = $value[0];
     $last_character = substr($value, -1, 1);
 
@@ -625,6 +639,15 @@ class Spyc {
     $seqs = array();
     $maps = array();
     $saved_strings = array();
+    $saved_empties = array();
+
+    // Check for empty strings
+    $regex = '/("")|(\'\')/';
+    if (preg_match_all($regex,$inline,$strings)) {
+      $saved_empties = $strings[0];
+      $inline  = preg_replace($regex,'YAMLEmpty',$inline);
+    }
+    unset($regex);
 
     // Check for strings
     $regex = '/(?:(")|(?:\'))((?(1)[^"]+|[^\']+))(?(1)"|\')/';
@@ -633,6 +656,8 @@ class Spyc {
       $inline  = preg_replace($regex,'YAMLString',$inline);
     }
     unset($regex);
+
+    // echo $inline;
 
     $i = 0;
     do {
@@ -653,7 +678,8 @@ class Spyc {
 
     } while (strpos ($inline, '[') !== false || strpos ($inline, '{') !== false);
 
-    $explode = explode(', ',$inline);
+    $explode = explode(',',$inline);
+    $explode = array_map('trim', $explode);
     $stringi = 0; $i = 0;
 
     while (1) {
@@ -695,6 +721,17 @@ class Spyc {
       }
     }
 
+
+    // Re-add the empties
+    if (!empty($saved_empties)) {
+      foreach ($explode as $key => $value) {
+        while (strpos($value,'YAMLEmpty') !== false) {
+          $explode[$key] = preg_replace('/YAMLEmpty/', '', $value, 1);
+          $value = $explode[$key];
+        }
+      }
+    }
+
     $finished = true;
     foreach ($explode as $key => $value) {
       if (strpos($value,'YAMLSeq') !== false) {
@@ -706,6 +743,9 @@ class Spyc {
       if (strpos($value,'YAMLString') !== false) {
         $finished = false; break;
       }
+      if (strpos($value,'YAMLEmpty') !== false) {
+        $finished = false; break;
+      }
     }
     if ($finished) break;
 
@@ -713,6 +753,7 @@ class Spyc {
     if ($i > 10)
       break; // Prevent infinite loops.
     }
+
 
     return $explode;
   }
@@ -1032,15 +1073,12 @@ class Spyc {
 }
 
 // Enable use of Spyc from command line
-// The syntax is the following: php spyc.php spyc.yaml
-
-define ('SPYC_FROM_COMMAND_LINE', false);
+// The syntax is the following: php Spyc.php spyc.yaml
 
 do {
-  if (!SPYC_FROM_COMMAND_LINE) break;
+  if (PHP_SAPI != 'cli') break;
   if (empty ($_SERVER['argc']) || $_SERVER['argc'] < 2) break;
-  if (empty ($_SERVER['PHP_SELF']) || $_SERVER['PHP_SELF'] != 'spyc.php') break;
+  if (empty ($_SERVER['PHP_SELF']) || FALSE === strpos ($_SERVER['PHP_SELF'], 'Spyc.php') ) break;
   $file = $argv[1];
-  printf ("Spyc loading file: %s\n", $file);
-  print_r (spyc_load_file ($file));
+  echo json_encode (spyc_load_file ($file));
 } while (0);

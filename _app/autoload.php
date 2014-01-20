@@ -1,6 +1,6 @@
 <?php
 
-const STATAMIC_VERSION = '1.5.2';
+const STATAMIC_VERSION = '1.6.7';
 const APP_PATH = __DIR__;
 
 /*
@@ -13,6 +13,8 @@ const APP_PATH = __DIR__;
 */
 
 require_once __DIR__ . '/vendor/Slim/Slim.php';
+require_once __DIR__ . '/vendor/SplClassLoader.php';
+
 \Slim\Slim::registerAutoloader();
 
 /*
@@ -24,15 +26,19 @@ require_once __DIR__ . '/vendor/Slim/Slim.php';
 |
 */
 
-require_once __DIR__ . '/vendor/SplClassLoader.php';
+$packages = array(
+  'Symfony',
+  'Buzz',
+  'Stampie',
+  'Intervention'
+);
 
-$loader = new SplClassLoader('Symfony', __dir__.'/vendor/');
-$loader->register();
+foreach ($packages as $package) {
+  $loader = new SplClassLoader($package, __DIR__ . '/vendor/');
+  $loader->register();
+}
 
-$loader = new SplClassLoader('Buzz', __dir__.'/vendor/');
-$loader->register();
-
-$loader = new SplClassLoader('Stampie', __dir__.'/vendor/');
+$loader = new SplClassLoader('emberlabs', __dir__.'/vendor/');
 $loader->register();
 
 require_once __DIR__ . '/vendor/PHPMailer/class.phpmailer.php';
@@ -77,6 +83,7 @@ require_once __DIR__ . '/vendor/Lex/Parser.php';
 
 require_once __DIR__ . '/core/api/cache.php';
 require_once __DIR__ . '/core/api/config.php';
+require_once __DIR__ . '/core/api/cookie.php';
 require_once __DIR__ . '/core/api/content.php';
 require_once __DIR__ . '/core/api/date.php';
 require_once __DIR__ . '/core/api/email.php';
@@ -88,6 +95,7 @@ require_once __DIR__ . '/core/api/hook.php';
 require_once __DIR__ . '/core/api/html.php';
 require_once __DIR__ . '/core/api/localization.php';
 require_once __DIR__ . '/core/api/parse.php';
+require_once __DIR__ . '/core/api/password.php';
 require_once __DIR__ . '/core/api/path.php';
 require_once __DIR__ . '/core/api/session.php';
 require_once __DIR__ . '/core/api/pattern.php';

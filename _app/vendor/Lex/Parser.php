@@ -1,4 +1,15 @@
 <?php
+/**
+ * Part of the Lex Template Parser
+ *
+ * @author      Dan Horrigan
+ * @author      Jack McDade
+ * @author      Fred LeBlanc
+ * @author      Mubashar Iqbal
+ * @license     MIT License
+ * @copyright   2011 - 2012 Dan Horrigan
+ * @copyright   2013 Statamic (the Statamic-specific changes)
+ */
 
 namespace Lex;
 
@@ -6,7 +17,7 @@ class Parser
 {
     protected $allowPhp = false;
     protected $regexSetup = false;
-    protected $scopeGlue = ':';
+    protected $scopeGlue = '.';
     protected $tagRegex = '';
     protected $cumulativeNoparse = false;
 
@@ -18,13 +29,19 @@ class Parser
 
     protected $callbackTagRegex = '';
     protected $callbackLoopTagRegex = '';
+    protected $callbackNameRegex = '';
+    protected $callbackBlockRegex = '';
 
     protected $noparseRegex = '';
+
+    protected $recursiveRegex = '';
 
     protected $conditionalRegex = '';
     protected $conditionalElseRegex = '';
     protected $conditionalEndRegex = '';
     protected $conditionalData = array();
+    protected $conditionalNotRegex = '';
+    protected $conditionalExistsRegex = '';
 
     protected static $extractions = array(
         'noparse' => array(),
@@ -37,13 +54,19 @@ class Parser
      * The main Lex parser method.  Essentially acts as dispatcher to
      * all of the helper parser methods.
      *
-     * @param  string       $text     Text to parse
-     * @param  array|object $data     Array or object to use
-     * @param  mixed        $callback Callback to use for Callback Tags
+     * @param  string        $text      Text to parse
+     * @param  array|object  $data      Array or object to use
+     * @param  mixed         $callback  Callback to use for Callback Tags
+     * @param  boolean       $allowPhp  Should we allow PHP?
      * @return string
      */
     public function parse($text, $data = array(), $callback = false, $allowPhp = false)
     {
+        // <statamic>
+        // use : as scope-glue
+        $this->scopeGlue = ':';
+        // </statamic>
+
         $this->setupRegex();
         $this->allowPhp = $allowPhp;
 
@@ -67,8 +90,12 @@ class Parser
             $text = str_replace(array('<?', '?>'), array('&lt;?', '?&gt;'), $text);
         }
 
+        // <statamic>
+        // reverse the order of no-parse and commenting
         $text = $this->extractNoparse($text);
         $text = $this->parseComments($text);
+        // </statamic>
+
         $text = $this->extractLoopedTags($text, $data, $callback);
 
         // Order is important here.  We parse conditionals first as to avoid
@@ -89,10 +116,12 @@ class Parser
             $text = $this->injectExtractions($text);
         }
 
-        // no callback callback, hack to get tag pairs with parameters to work
-        if (strstr($text, "{{"))  {
+        // <statamic>
+        // get tag-pairs with parameters to work
+        if (strpos($text, "{{") !== false)  {
             $text = $this->parseCallbackTags($text, $data, null);
         }
+        // </statamic>
 
         return $text;
     }
@@ -111,21 +140,17 @@ class Parser
     }
 
     /**
-     * Recursivly parses all of the variables in the given text and
+     * Recursively parses all of the variables in the given text and
      * returns the parsed text.
      *
      * @param  string       $text Text to parse
      * @param  array|object $data Array or object to use
+     * @param  callable  $callback  Callback function to call
      * @return string
      */
     public function parseVariables($text, $data, $callback = null)
     {
         $this->setupRegex();
-
-        $datev = false;
-        if (stripos($text, "datestamp")) {
-            $datev = true;
-        }
 
         /**
          * $data_matches[][0][0] is the raw data loop tag
@@ -136,61 +161,63 @@ class Parser
          * $data_matches[][2][1] is the offset of content to be looped over
          */
         if (preg_match_all($this->variableLoopRegex, $text, $data_matches, PREG_SET_ORDER + PREG_OFFSET_CAPTURE)) {
-            foreach ($data_matches as $index => $match) {
-                if ($loop_data = $this->getVariable($match[1][0], $data)) {
+            foreach ($data_matches as $match) {
+                $loop_data = $this->getVariable($match[1][0], $data);
+                if ($loop_data) {
                     $looped_text = '';
-                    if (is_array($loop_data)) {
+                    $index = 0;
 
-                        $index = 0;
+                    // <statamic>
+                    // is this data an array?
+                    if (is_array($loop_data)) {
+                        // yes
+                        $total_results = count($loop_data);
+
                         foreach ($loop_data as $loop_key => $loop_value) {
                             $index++;
 
-                            $str = "";
+                            $new_loop = (is_array($loop_value)) ? $loop_value : array($loop_key => $loop_value);
 
-                            if (is_array($loop_key)) {
-
-                                if (!isset($loop_key['index'])) {
-                                    $loop_key['index'] = $index;
-                                }
-                                if (!isset($loop_key['total_results'])) {
-                                    $loop_key['total_results'] = count($loop_data);
-                                }
-
-                                $str = $this->parseConditionals($match[2][0], $loop_key, $callback);
-                                $str = $this->parseVariables($str, $loop_key, $callback);
-                                if ($callback !== null) {
-                                    $str = $this->parseCallbackTags($str, $loop_key, $callback);
-                                }
-                            } else {
-                                $new_loop = array($loop_key => $loop_value);
-
-                                if ( ! is_array($loop_value)) {
-                                    $loop_value = array(
-                                        'value' => $loop_value,
-                                        'name' => $loop_value // 'value' alias (legacy)
-                                    );
-                                }
-
-                                $loop_value['key'] = $loop_key;
-                                $loop_value['index'] = $index;
-                                $loop_value['zero_index'] = $index - 1;
-                                $loop_value['total_results'] = count($loop_data);
-                                $loop_value['first'] = ($index === 1) ? true : false;
-                                $loop_value['last'] = ($index === $loop_value['total_results']) ? true : false;
-
-                                $str = $this->parseConditionals($match[2][0], $loop_value, $callback);
-                                $str = $this->parseVariables($str, $loop_value, $callback);
-
-                                if ($callback !== null) {
-                                    $str = $this->parseCallbackTags($str, $new_loop, $callback);
-                                }
+                            // is the value an array?
+                            if ( ! is_array($loop_value)) {
+                                // no, make it one
+                                $loop_value = array(
+                                    'value' => $loop_value,
+                                    'name' => $loop_value // 'value' alias (legacy)
+                                );
                             }
+
+                            // set contextual iteration values
+                            $loop_value['key']            = $loop_key;
+                            $loop_value['index']          = $index;
+                            $loop_value['zero_index']     = $index - 1;
+                            $loop_value['total_results']  = $total_results;
+                            $loop_value['first']          = ($index === 1) ? true : false;
+                            $loop_value['last']           = ($index === $loop_value['total_results']) ? true : false;
+
+                            // merge this local data with callback data before performing actions
+                            $loop_value = array_merge(self::$callbackData, $loop_value);
+
+                            // perform standard actions
+                            $str = $this->extractLoopedTags($match[2][0], $loop_value, $callback);
+                            $str = $this->parseConditionals($str, $loop_value, $callback);
+                            $str = $this->injectExtractions($str, 'looped_tags');
+                            $str = $this->parseVariables($str, $loop_value, $callback);
+
+                            if (!is_null($callback)) {
+                                $str = $this->parseCallbackTags($str, $new_loop, $callback);
+                            }
+
                             $looped_text .= $str;
                         }
+
                         $text = preg_replace('/'.preg_quote($match[0][0], '/').'/m', addcslashes($looped_text, '\\$'), $text, 1);
+
                     } else {
+                        // no, so this is just a value, we're done here
                         return $loop_data;
                     }
+                    // </statamic>
                 } else { // It's a callback block.
                     // Let's extract it so it doesn't conflict
                     // with the local scope variables in the next step.
@@ -206,47 +233,60 @@ class Parser
         if (preg_match_all($this->variableTagRegex, $text, $data_matches)) {
             foreach ($data_matches[1] as $index => $var) {
                 if (($val = $this->getVariable($var, $data, '__lex_no_value__')) !== '__lex_no_value__') {
+                    if (is_array($val)) {
+                        $val = "";
+                        \Log::error("Cannot display tag `" . $data_matches[0][$index] . "` because it is a list, not a single value. To display list values, use a tag-pair.", "template", "parser");
+                    }
                     $text = str_replace($data_matches[0][$index], $val, $text);
                 }
             }
         }
 
+        // <statamic>
+        // we need to look for parameters on plain-old non-callback variable tags
+        // right now, this only applies to `format` parameters for dates
         $regex = '/\{\{\s*('.$this->variableRegex.')(\s+.*?)?\s*\}\}/ms';
         if (preg_match_all($regex, $text, $data_matches, PREG_SET_ORDER + PREG_OFFSET_CAPTURE)) {
             foreach ($data_matches as $match) {
 
-                $parameters = array();
-                $tag = $match[0][0];
-                $start = $match[0][1];
-                $name = $match[1][0];
+                // grab some starting values & init variables
+                $parameters  = array();
+                $tag         = $match[0][0];
+                $name        = $match[1][0];
 
+                // is this not the content tag, and is the value known?
                 if ($name != 'content' && isset($data[$name])) {
+                    // it is, are there parameters?
                     if (isset($match[2])) {
+                        // there are, make a backup of our $data
                         $cb_data = $data;
+
+                        // is $data an array?
                         if (is_array($data)) {
+                            // it is, have we had callback data before?
                             if ( !empty(self::$callbackData)) {
+                                // we have, merge it all together
                                 $cb_data = array_merge(self::$callbackData, $data);
                             }
+
+                            // grab the raw string of parameters
                             $raw_params = $this->injectExtractions($match[2][0], '__cond_str');
+
+                            // parse them into an array
                             $parameters = $this->parseParameters($raw_params, $cb_data, $callback);
-                        } else if (is_string($data)) {
+                        } elseif (is_string($data)) {
                             $text = str_replace($tag, $data, $text);
                         }
                     }
 
+                    // check for certain parameters and do what they should do
                     if (isset($parameters['format'])) {
-                        $value = "";
-                        if (is_integer($data[$name])) {
-                            $value = date($parameters['format'], $data[$name]);
-                            $text = str_replace($tag, $value, $text);
-                        } else if (is_string($data[$name])) {
-                            $value = date($parameters['format'], strtotime($data[$name]));
-                            $text = str_replace($tag, $value, $text);
-                        }
+                        $text = str_replace($tag, \Date::format($parameters['format'], $data[$name]), $text);
                     }
                 }
             }
         }
+        // </statamic>
 
         return $text;
     }
@@ -255,21 +295,26 @@ class Parser
      * Parses all Callback tags, and sends them through the given $callback.
      *
      * @param  string $text           Text to parse
+     * @param  array  $data           An array of data to use
      * @param  mixed  $callback       Callback to apply to each tag
-     * @param  bool   $inConditional Whether we are in a conditional tag
      * @return string
      */
     public function parseCallbackTags($text, $data, $callback)
     {
-        $extractions = array();
         $this->setupRegex();
         $inCondition = $this->inCondition;
 
         if ($inCondition) {
             $regex = '/\{\s*('.$this->variableRegex.')(\s+.*?)?\s*\}/ms';
         } else {
-            $regex = '/\{\{\s*('.$this->variableRegex.')(\s+.*?)?\s*\}\}/ms';
+            $regex = '/\{\{\s*('.$this->variableRegex.')(\s+.*?)?\s*(\/)?\}\}/ms';
         }
+
+        // <statamic>
+        // define a variable of collective callback data
+        $cb_data = $data;
+        // </statamic>
+
         /**
          * $match[0][0] is the raw tag
          * $match[0][1] is the offset of raw tag
@@ -277,160 +322,210 @@ class Parser
          * $match[1][1] is the offset of callback name
          * $match[2][0] is the parameters
          * $match[2][1] is the offset of parameters
+         * $match[3][0] is the self closure
+         * $match[3][1] is the offset of closure
          */
         while (preg_match($regex, $text, $match, PREG_OFFSET_CAPTURE)) {
+            // <statamic>
+            // update the collective data if it's different
+            if ( !empty(self::$callbackData)) {
+                $cb_data = array_merge(self::$callbackData, $data);
+            }
+            // </statamic>
+
+            $selfClosed = false;
             $parameters = array();
             $tag = $match[0][0];
             $start = $match[0][1];
             $name = $match[1][0];
             if (isset($match[2])) {
-                $cb_data = $data;
-                if ( !empty(self::$callbackData)) {
-                    $cb_data = array_merge(self::$callbackData, $data);
-                }
                 $raw_params = $this->injectExtractions($match[2][0], '__cond_str');
                 $parameters = $this->parseParameters($raw_params, $cb_data, $callback);
-                $count = 0;
 
-                // $$$ MUBS: Replace variables in the parameters
-                foreach ($parameters as $key => $value) {
-                    if (preg_match('/\{\s*('.$this->variableRegex.')\s*\}/', $value)) {
-                        $value = str_replace('{', '{{', $value);
-                        $value = str_replace('}', '}}', $value);
-                        $parameters[$key] = $this->parseVariables($value, $data);
+                // <statamic>
+                // replace variables within parameters
+                foreach ($parameters as $param_key => $param_value) {
+                    if (preg_match_all('/(\{\s*'.$this->variableRegex.'\s*\})/', $param_value, $param_matches)) {
+                        $param_value = str_replace('{', '{{', $param_value);
+                        $param_value = str_replace('}', '}}', $param_value);
+                        $param_value = $this->parseVariables($param_value, $data);
+                        $parameters[$param_key] = $this->parseCallbackTags($param_value, $data, $callback);
                     }
                 }
+                // </statamic>
+            }
+
+            if (isset($match[3])) {
+                $selfClosed = true;
             }
             $content = '';
 
             $temp_text = substr($text, $start + strlen($tag));
-            if (preg_match('/\{\{\s*\/'.preg_quote($name, '/').'\s*\}\}/m', $temp_text, $temp_match, PREG_OFFSET_CAPTURE)) {
-                $content = substr($temp_text, 0, $temp_match[0][1]);
-                $tag .= $content.$temp_match[0][0];
+            if (preg_match('/\{\{\s*\/'.preg_quote($name, '/').'\s*\}\}/m', $temp_text, $match, PREG_OFFSET_CAPTURE) && ! $selfClosed) {
+
+                $content = substr($temp_text, 0, $match[0][1]);
+                $tag .= $content.$match[0][0];
 
                 // Is there a nested block under this one existing with the same name?
                 $nested_regex = '/\{\{\s*('.preg_quote($name, '/').')(\s.*?)\}\}(.*?)\{\{\s*\/\1\s*\}\}/ms';
-                if (preg_match($nested_regex, $content.$temp_match[0][0], $nested_matches)) {
+                if (preg_match($nested_regex, $content.$match[0][0], $nested_matches)) {
                     $nested_content = preg_replace('/\{\{\s*\/'.preg_quote($name, '/').'\s*\}\}/m', '', $nested_matches[0]);
                     $content = $this->createExtraction('nested_looped_tags', $nested_content, $nested_content, $content);
                 }
             }
 
+            // <statamic>
+            // we'll be checking on replacement later, so initialize it
+            $replacement = null;
+
+            // now, check to see if a callback should happen
             if ($callback) {
+                // </statamic>
                 $replacement = call_user_func_array($callback, array($name, $parameters, $content));
                 $replacement = $this->parseRecursives($replacement, $content, $callback);
-            } else {
-                $replacement = '';
+                // <statamic>
             }
+            // </statamic>
 
-            if ($name != 'content' && $replacement == '') {
-
-                // ### $$$
+            // <statamic>
+            // look for tag pairs and (plugin) callbacks
+            if ($name != "content" && !$replacement) {
+                // is the callback a variable in our data set?
                 if (isset($data[$name])) {
+                    // it is, start with the value(s)
                     $values = $data[$name];
 
-                    if (isset($parameters['sort_by'])) {
-                        $sort_field = $parameters['sort_by'];
-
-                        if ($sort_field == 'random') {
-                            shuffle($values);
-                        } else {
-                            usort($values, function($a, $b) use ($sort_field) {
-                                if (isset($a[$sort_field]) && (isset($b[$sort_field]))) {
-                                    return strcmp($a[$sort_field], $b[$sort_field]);
-                                } else {
-                                    return true;
-                                }
-                            });
-                        }
-                    }
-
-                    if (isset($parameters['sort_dir']) && $parameters['sort_dir'] == 'desc') {
-                        $values = array_reverse($values);
-                    }
-
-                    if (isset($parameters['first'])) {
-                        $values = array_splice($values, 0, 1);
-                    }
-
-                    if (isset($parameters['last'])) {
-                        $values = array_splice($values, -1, 1);
-                    }
-
-                    if (isset($parameters['offset'])) {
-                        $values = array_splice($values, $parameters['offset']);
-                    }
-
-                    if (isset($parameters['index'])) {
-                        $values = array_splice($values, $parameters['index']-1, 1);
-                    }
-
-                    if (isset($parameters['limit'])) {
-                        $values = array_splice($values, 0, $parameters['limit']);
-                    }
-
-                    if (isset($parameters['exclude'])) {
-                        $exclude = array_flip(explode('|', $parameters['exclude']));
-                        $values = array_diff_key($values, $exclude);
-                    }
-
-                    if (isset($parameters['include'])) {
-                        $include = array_flip(explode('|', $parameters['include']));
-                        $values = array_intersect_key($values, $include);
-                    }
-
+                    // is this a tag-pair?
                     if (is_array($values)) {
+                        // yes it is
+                        // there might be parameters that will control how this
+                        // tag-pair's data is filtered/sorted/limited/etc,
+                        // look for those and apply those as needed
 
-                        $i = 1;
-                        foreach ($values as $k => $v) {
-                            if ( ! is_array($values[$k])) {
-                                $total_results = count($values);
+                        // exact result grabbing ----------------------------------
 
-                                $values[$k] = array(
-                                    'key' => $i - 1,
-                                    'value' => $values[$k],
-                                    'name' => $values[$k], // 'value' alias (legacy)
-                                    'index' => $i,
-                                    'zero_index' => $i - 1,
+                        // first only
+                        if (isset($parameters['first'])) {
+                            $values = array_splice($values, 0, 1);
+                        }
+
+                        // last only
+                        if (isset($parameters['last'])) {
+                            $values = array_splice($values, -1, 1);
+                        }
+
+                        // specific-index only
+                        if (isset($parameters['index'])) {
+                            $values = array_splice($values, $parameters['index']-1, 1);
+                        }
+
+                        // now filter remaining values ----------------------------
+
+                        // excludes
+                        if (isset($parameters['exclude'])) {
+                            $exclude = array_flip(explode('|', $parameters['exclude']));
+                            $values  = array_diff_key($values, $exclude);
+                        }
+
+                        // includes
+                        if (isset($parameters['include'])) {
+                            $include = array_flip(explode('|', $parameters['include']));
+                            $values = array_intersect_key($values, $include);
+                        }
+
+                        // now sort remaining values ------------------------------
+
+                        // field to sort by
+                        if (isset($parameters['sort_by'])) {
+                            $sort_field = $parameters['sort_by'];
+
+                            if ($sort_field == 'random') {
+                                shuffle($values);
+                            } else {
+                                usort($values, function($a, $b) use ($sort_field) {
+                                    $a_value = (isset($a[$sort_field])) ? $a[$sort_field] : null;
+                                    $b_value = (isset($b[$sort_field])) ? $b[$sort_field] : null;
+
+                                    return \Helper::compareValues($a_value, $b_value);
+                                });
+                            }
+                        }
+
+                        // direction to sort by
+                        if (isset($parameters['sort_dir']) && $parameters['sort_dir'] == 'desc') {
+                            $values = array_reverse($values);
+                        }
+
+                        // finally, offset & limit values -------------------------
+
+                        if (isset($parameters['offset']) || isset($parameters['limit'])) {
+                            $offset = (isset($parameters['offset'])) ? $parameters['offset'] : 0;
+                            $limit  = (isset($parameters['limit'])) ? $parameters['limit'] : null;
+
+                            $values = array_splice($values, $offset, $limit);
+                        }
+
+
+                        // loop over remaining values, adding contextual tags
+                        // to each iteration of the loop
+                        $i = 0;
+                        $total_results = count($values);
+                        foreach ($values as $value_key => $value_value) {
+                            // increment index iterator
+                            $i++;
+
+                            // if this isn't an array, we need to make it one
+                            if (!is_array($values[$value_key])) {
+                                // not an array, set contextual tags
+                                // note: these are for tag-pairs only
+                                $values[$value_key] = array(
+                                    'key'           => $i - 1,
+                                    'value'         => $values[$value_key],
+                                    'name'          => $values[$value_key], // 'value' alias (legacy)
+                                    'index'         => $i,
+                                    'zero_index'    => $i - 1,
                                     'total_results' => $total_results,
-                                    'first' => ($i === 1) ? true : false,
-                                    'last' => ($i === $total_results) ? true : false
+                                    'first'         => ($i === 1) ? true : false,
+                                    'last'          => ($i === $total_results) ? true : false
                                 );
                             }
-                            $i ++;
                         }
                     }
 
-                    $sdata = array();
-                    $sdata[$name] = $values;
-
-                    if (is_array($sdata)) {
-                        if (isset($sdata[$name]) && $sdata[$name] != '') {
-                            $replacement = $this->parseVariables("{{ $name }}$content{{ /$name }}", $sdata, $callback);
-                        } else {
-                            $replacement = "";
-                        }
+                    // is values not an empty string?
+                    if ($values !== "") {
+                        // correct, parse the tag found with the value(s) related to it
+                        $replacement = $this->parseVariables("{{ $name }}$content{{ /$name }}", array($name => $values), $callback);
                     }
+
                 } else {
-                    // $$$ MUBS
-                    if ($callback == null) {
+                    // nope, this must be a (plugin) callback
+                    if (is_null($callback)) {
+                        // @todo what does this do?
                         $text = $this->createExtraction('__variables_not_callbacks', $text, $text, $text);
+                    } elseif (isset($cb_data[$name])) {
+                        // value not found in the data block, so we check the
+                        // cumulative callback data block for a value and use that
+                        $text = $this->parseVariables($text, $cb_data, $callback);
+                        $text = $this->injectExtractions($text, 'callback_blocks');
                     }
                 }
             }
+            // </statamic>
 
             if ($inCondition) {
                 $replacement = $this->valueToLiteral($replacement);
             }
-
             $text = preg_replace('/'.preg_quote($tag, '/').'/m', addcslashes($replacement, '\\$'), $text, 1);
             $text = $this->injectExtractions($text, 'nested_looped_tags');
         }
 
-        // reinject?
-        if ($callback == null) {
+        // <statamic>
+        // re-inject any extractions we extracted
+        if (is_null($callback)) {
             $text = $this->injectExtractions($text, '__variables_not_callbacks');
         }
+        // </statamic>
 
         return $text;
     }
@@ -460,6 +555,17 @@ class Parser
 
             $condition = $match[2];
 
+            // <statamic>
+            // do an initial check for callbacks, extract them if found
+            if ($callback) {
+                if (preg_match_all('/\b(?!\{\s*)('.$this->callbackNameRegex.')(?!\s+.*?\s*\})\b/', $condition, $cb_matches)) {
+                    foreach ($cb_matches[0] as $m) {
+                        $condition = $this->createExtraction('__cond_callbacks', $m, "{$m}", $condition);
+                    }
+                }
+            }
+            // </statamic>
+
             // Extract all literal string in the conditional to make it easier
             if (preg_match_all('/(["\']).*?(?<!\\\\)\1/', $condition, $str_matches)) {
                 foreach ($str_matches[0] as $m) {
@@ -480,49 +586,52 @@ class Parser
 
             $condition = preg_replace_callback('/\b('.$this->variableRegex.')\b/', array($this, 'processConditionVar'), $condition);
 
+            // <statamic>
+            // inject any found callbacks and parse them
             if ($callback) {
-                $condition = preg_replace('/\b(?!\{\s*)('.$this->callbackNameRegex.')(?!\s+.*?\s*\})\b/', '{$1}', $condition);
+                $condition = $this->injectExtractions($condition, '__cond_callbacks');
                 $condition = $this->parseCallbackTags($condition, $data, $callback);
+            }
+            // </statamic>
 
-                // Incase the callback returned a string, we need to extract it
-                if (preg_match_all('/(["\']).*?(?<!\\\\)\1/', $condition, $str_matches)) {
-                    foreach ($str_matches[0] as $m) {
-                        $condition = $this->createExtraction('__cond_str', $m, $m, $condition);
-                    }
+            // Re-extract the strings that have now been possibly added.
+            if (preg_match_all('/(["\']).*?(?<!\\\\)\1/', $condition, $str_matches)) {
+                foreach ($str_matches[0] as $m) {
+                    $condition = $this->createExtraction('__cond_str', $m, $m, $condition);
                 }
             }
 
             // Re-process for variables, we trick processConditionVar so that it will return null
             $this->inCondition = false;
 
-		  // $$$
-		  // replacements -- the preg_replace_callback below is using word boundaries, which
-		  // will break when one of your original variables gets replaced with a URL path
-		  // (because word boundaries think slashs are boundaries) -- to fix this, we replace
-		  // all instances of a literal string in single quotes with a temporary replacement
-		  $replacements = array();
+            // <statamic>
+            // replacements -- the preg_replace_callback below is using word boundaries, which
+            // will break when one of your original variables gets replaced with a URL path
+            // (because word boundaries think slashes are boundaries) -- to fix this, we replace
+            // all instances of a literal string in single quotes with a temporary replacement
+            $replacements = array();
 
-		  // first up, replacing literal strings
-		  while (preg_match("/('[^']+'|\"[^\"]+\")/", $condition, $replacement_matches)) {
-			  $replacement_match = $replacement_matches[1];
-			  $replacement_hash  = md5($replacement_match);
+            // first up, replacing literal strings
+            while (preg_match("/('[^']+'|\"[^\"]+\")/", $condition, $replacement_matches)) {
+                $replacement_match = $replacement_matches[1];
+                $replacement_hash  = md5($replacement_match);
 
-			  $replacements[$replacement_hash] = $replacement_match;
-			  $condition = str_replace($replacement_match, "__temp_replacement_" . $replacement_hash, $condition);
-		  }
+                $replacements[$replacement_hash] = $replacement_match;
+                $condition = str_replace($replacement_match, "__temp_replacement_" . $replacement_hash, $condition);
+            }
 
-		  // next, the original re-processing callback
-		  $condition = preg_replace_callback('/\b('.$this->variableRegex.')\b/', array($this, 'processConditionVar'), $condition);
+            // next, the original re-processing callback
+            // </statamic>
+            $condition = preg_replace_callback('/\b('.$this->variableRegex.')\b/', array($this, 'processConditionVar'), $condition);
 
-		  // finally, replacing our placeholders with the original values
-		  foreach ($replacements as $replace_key => $replace_value) {
-			  $condition = str_replace('__temp_replacement_' . $replace_key, $replace_value, $condition);
-		  }
+            // <statamic>
+            // finally, replacing our placeholders with the original values
+            foreach ($replacements as $replace_key => $replace_value) {
+                $condition = str_replace('__temp_replacement_' . $replace_key, $replace_value, $condition);
+            }
+            // </statamic>
 
-		  // end of our fix
-		  // $$$
-
-		  $this->inCondition = true;
+            $this->inCondition = true;
 
             // Re-inject any strings we extracted
             $condition = $this->injectExtractions($condition, '__cond_str');
@@ -675,7 +784,10 @@ class Parser
         if (in_array(strtolower($var), array('true', 'false', 'null', 'or', 'and')) or
             strpos($var, '__cond_str') === 0 or
             strpos($var, '__cond_exists') === 0 or
-		strpos($var, '__temp_replacement') === 0 or    // $$$  for found literal values
+            // <statamic>
+            // adds a new temporary replacement to deal with string literals
+            strpos($var, '__temp_replacement') === 0 or
+            // </statamic>
             is_numeric($var))
         {
             return $var;
@@ -731,12 +843,19 @@ class Parser
         }
         $glue = preg_quote($this->scopeGlue, '/');
 
-        $this->variableRegex = $glue === '\\.' ? '[|a-zA-Z\-\+\*\/,0-9_'.$glue.']+' : '[|a-zA-Z\-\+\*\/,0-9_\.'.$glue.']+';
+        // <statamic>
+        // expand allowed characters in variable regex
+        $this->variableRegex = $glue === '\\.' ? '[a-zA-Z0-9_][|a-zA-Z\-\+\*%\^\/,0-9_'.$glue.']*' : '[a-zA-Z0-9_][|a-zA-Z\-\+\*%\^\/,0-9_\.'.$glue.']*';
+        // </statamic>
         $this->callbackNameRegex = $this->variableRegex.$glue.$this->variableRegex;
         $this->variableLoopRegex = '/\{\{\s*('.$this->variableRegex.')\s*\}\}(.*?)\{\{\s*\/\1\s*\}\}/ms';
         $this->variableTagRegex = '/\{\{\s*('.$this->variableRegex.')\s*\}\}/m';
 
-        $this->callbackBlockRegex = '/\{\{\s*('.$this->variableRegex.')(\s.*?)\}\}(.*?)\{\{\s*\/\1\s*\}\}/ms';
+        // <statamic>
+        // make the space-anything after the variable regex optional, this allows
+        // users to use {{tags}} in addition to {{ tags }} -- weird, I know
+        $this->callbackBlockRegex = '/\{\{\s*('.$this->variableRegex.')(\s.*?)?\}\}(.*?)\{\{\s*\/\1\s*\}\}/ms';
+        // </statamic>
 
         $this->recursiveRegex = '/\{\{\s*\*recursive\s*('.$this->variableRegex.')\*\s*\}\}/ms';
 
@@ -779,7 +898,9 @@ class Parser
     /**
      * Extracts the looped tags so that we can parse conditionals then re-inject.
      *
-     * @param  string $text The text to extract from
+     * @param string  $text  The text to extract from
+     * @param array  $data  Data array to use
+     * @param callable  $callback  Callback to call when complete
      * @return string
      */
     protected function extractLoopedTags($text, $data = array(), $callback = null)
@@ -821,15 +942,20 @@ class Parser
         return str_replace($extraction, "{$type}_{$hash}", $text);
     }
 
+
     /**
      * Injects all of the extractions.
      *
-     * @param  string $text Text to inject into
+     * @param string  $text  Text to inject into
+     * @param string  $type  Type of extraction to inject
      * @return string
      */
     protected function injectExtractions($text, $type = null)
     {
-        if ($type === null) {
+        // <statamic>
+        // changed === comparison to is_null check
+        if (is_null($type)) {
+            // </statamic>
             foreach (self::$extractions as $type => $extractions) {
                 foreach ($extractions as $hash => $replacement) {
                     if (strpos($text, "{$type}_{$hash}") !== false) {
@@ -854,8 +980,9 @@ class Parser
         return $text;
     }
 
+
     /**
-     * Takes a dot-notated key and finds the value for it in the given
+     * Takes a scope-notated key and finds the value for it in the given
      * array or object.
      *
      * @param  string       $key     Dot-notated key to find
@@ -907,7 +1034,35 @@ class Parser
                     $modifier_params = array_splice($parts, 1);
                 }
 
-                if ($modifier_name == 'trim') {
+                // Array modifiers
+                if ($modifier_name == 'list') {
+                    $data = join(", ", $data);
+
+                } elseif ($modifier_name == 'spaced_list') {
+                    $data = join(" ", $data);
+
+                } elseif ($modifier_name == 'option_list') {
+                    $data = join("|", $data);
+
+                } elseif ($modifier_name == 'unordered_list') {
+                    $data = "<ol><li>" . join("</li><li>", $data) . "</li></ol>";
+
+                } elseif ($modifier_name == 'ordered_list') {
+                    $data = "<ul><li>" . join("</li><li>", $data) . "</li></ul>";
+
+                } elseif ($modifier_name == 'sentence_list') {
+                    $data = \Helper::makeSentenceList($data);
+
+                } elseif ($modifier_name == 'ampersand_list') {
+                    $data = \Helper::makeSentenceList($data, "&", false);
+
+                } elseif ($modifier_name == 'sanitize') {
+                    $data = htmlentities($data);
+
+                } elseif ($modifier_name == 'json') {
+                    $data = json_encode($data);
+
+                } elseif ($modifier_name == 'trim') {
                     $data = trim($data);
 
                 } elseif ($modifier_name == 'img') {
@@ -928,7 +1083,8 @@ class Parser
                     $data = strtolower($data);
 
                 } else if ($modifier_name == 'slugify') {
-                    $data = \Slug::make($data);
+                    $delimiter = array_get($modifier_params, 0, '-');
+                    $data = \Slug::make($data, array('delimiter' => $delimiter));
 
                 } else if ($modifier_name == 'deslugify') {
                     $data = trim(preg_replace('~[-_]~', ' ', $data), " ");
@@ -938,6 +1094,10 @@ class Parser
 
                 } else if ($modifier_name == 'format') {
                     $data = date($modifier_params[0], $data);
+
+                } else if ($modifier_name == 'format_number') {
+                    $decimals = (isset($modifier_params[0])) ? $modifier_params[0] : 0;
+                    $data = number_format($data, $decimals);
 
                 } else if ($modifier_name == 'in_future') {
                     $data = (\Date::resolve($data) > time()) ? "true" : "";
@@ -1133,7 +1293,7 @@ class Parser
                     $data = \Math::getDistanceInKilometers($point_1, $point_2);
 
                 } else if ($modifier_name == 'smartypants') {
-                    $data = SmartyPants($data);
+                    $data = SmartyPants($data, 2);
 
                 } else if ($modifier_name == 'widont') {
                     // thanks to Shaun Inman for inspriation here
@@ -1143,7 +1303,7 @@ class Parser
                     if (preg_match("/<\/(?:p|li|h1|h2|h3|h4|h5|h6|figcaption)>/ism", $data)) {
                         $data = preg_replace("/(?<!<[p|li|h1|h2|h3|h4|h5|h6|div|figcaption])([^\s])[ \t]+([^\s]+(?:<\/(?:p|li|h1|h2|h3|h4|h5|h6|div|figcaption)>))$/im", "$1&nbsp;$2", rtrim($data));
 
-                    // otherwise
+                        // otherwise
                     } else {
                         $data = preg_replace("/([^\s])\s+([^\s]+)\s*$/im", "$1&nbsp;$2", rtrim($data));
                     }
@@ -1171,11 +1331,13 @@ class Parser
         return $data;
     }
 
+
     /**
      * Evaluates the PHP in the given string.
      *
-     * @param  string $text Text to evaluate
+     * @param string  $text  Text to evaluate
      * @return string
+     * @throws ParsingException
      */
     protected function parsePhp($text)
     {
@@ -1194,7 +1356,9 @@ class Parser
     /**
      * Parses a parameter string into an array
      *
-     * @param   string  The string of parameters
+     * @param string  $parameters The string of parameters
+     * @param array  $data  Array of data
+     * @param callable  $callback  Callback function to call
      * @return array
      */
     protected function parseParameters($parameters, $data, $callback)

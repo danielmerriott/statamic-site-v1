@@ -27,7 +27,7 @@ class Plugin_location extends Plugin {
      * @return string
      */
     public function start_maps() {
-        $add_on_path = Config::getAddOnPath("location");
+        $add_on_path = Path::tidy(Config::getSiteRoot() . Config::getAddOnPath("location"));
 
         return '
             <!-- leaflet maps -->

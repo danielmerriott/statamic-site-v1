@@ -6,6 +6,7 @@ use Buzz\Message\Form\FormRequestInterface;
 use Buzz\Message\Form\FormUploadInterface;
 use Buzz\Message\MessageInterface;
 use Buzz\Message\RequestInterface;
+use Buzz\Exception\ClientException;
 
 /**
  * Base client class with helpers for working with cURL.
@@ -13,6 +14,16 @@ use Buzz\Message\RequestInterface;
 abstract class AbstractCurl extends AbstractClient
 {
     protected $options = array();
+
+    public function __construct()
+    {
+        if (defined('CURLOPT_PROTOCOLS')) {
+            $this->options = array(
+                CURLOPT_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+                CURLOPT_REDIR_PROTOCOLS => CURLPROTO_HTTP | CURLPROTO_HTTPS,
+            );
+        }
+    }
 
     /**
      * Creates a new cURL resource.
@@ -24,7 +35,7 @@ abstract class AbstractCurl extends AbstractClient
     protected static function createCurlHandle()
     {
         if (false === $curl = curl_init()) {
-            throw new \RuntimeException('Unable to create a new cURL handle');
+            throw new ClientException('Unable to create a new cURL handle');
         }
 
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
@@ -118,7 +129,7 @@ abstract class AbstractCurl extends AbstractClient
             }
         }
 
-        return $multipart ? $fields : http_build_query($fields);
+        return $multipart ? $fields : http_build_query($fields, '', '&');
     }
 
     /**
@@ -169,9 +180,20 @@ abstract class AbstractCurl extends AbstractClient
         static::setOptionsFromRequest($curl, $request);
 
         // apply settings from client
-        curl_setopt($curl, CURLOPT_TIMEOUT, $this->getTimeout());
-        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, 0 < $this->getMaxRedirects());
-        curl_setopt($curl, CURLOPT_MAXREDIRS, $this->getMaxRedirects());
+        if ($this->getTimeout() < 1) {
+            curl_setopt($curl, CURLOPT_TIMEOUT_MS, $this->getTimeout() * 1000);
+        } else {
+            curl_setopt($curl, CURLOPT_TIMEOUT, $this->getTimeout());
+        }
+
+        if ($this->proxy) {
+            curl_setopt($curl, CURLOPT_PROXY, $this->proxy);
+        }
+        
+        $canFollow = !ini_get('safe_mode') && !ini_get('open_basedir');
+
+        curl_setopt($curl, CURLOPT_FOLLOWLOCATION, $canFollow && $this->getMaxRedirects() > 0);
+        curl_setopt($curl, CURLOPT_MAXREDIRS, $canFollow ? $this->getMaxRedirects() : 0);
         curl_setopt($curl, CURLOPT_FAILONERROR, !$this->getIgnoreErrors());
         curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, $this->getVerifyPeer());
 

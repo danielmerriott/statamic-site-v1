@@ -40,19 +40,17 @@ class Content
     public static function parse($template_data, $data, $type=NULL)
     {
         $app   = \Slim\Slim::getInstance();
-        $data  = array_merge($data, $app->config);
 
-        $parser = new Lex\Parser();
-        $parser->cumulativeNoparse(TRUE);
+        $data  = array_merge($app->config, $data);
 
         $parse_order = Config::getParseOrder();
 
         if ($parse_order[0] == 'tags') {
-            $output = $parser->parse($template_data, $data);
+            $output = Parse::template($template_data, $data);
             $output = self::transform($output, $type);
         } else {
             $output = self::transform($template_data, $type);
-            $output = $parser->parse($output, $data);
+            $output = Parse::template($output, $data);
         }
 
         return $output;
@@ -87,7 +85,7 @@ class Content
         }
 
         if (Config::get('_enable_smartypants', TRUE) == TRUE) {
-            $content = SmartyPants($content);
+            $content = SmartyPants($content, 2);
         }
 
         return trim($content);

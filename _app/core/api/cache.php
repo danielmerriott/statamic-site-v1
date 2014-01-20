@@ -90,15 +90,27 @@ class Cache
             foreach ($changed_files as $file) {
                 $file           = $full_content_root . $file;
                 $local_path     = Path::trimFilesystem($file);
+                
+                // before cleaning anything, check for hidden or draft content
+                $is_hidden      = Path::isHidden($local_path);
+                $is_draft       = Path::isDraft($local_path);
+                
+                // now clean up the path
                 $local_filename = Path::clean($local_path);
 
                 // file parsing
-                $content = substr(File::get($file), 3);
-                $divide = strpos($content, "\n---");
-                $front_matter = trim(substr($content, 0, $divide));
+                $content       = substr(File::get($file), 3);
+                $divide        = strpos($content, "\n---");
+                $front_matter  = trim(substr($content, 0, $divide));
+                $content_raw   = trim(substr($content, $divide + 4));
 
                 // parse data
-                $data                   = YAML::parse($front_matter);
+                $data = YAML::parse($front_matter);
+                
+                if ($content_raw) {
+                    $data['content']      = 'true';
+                    $data['content_raw']  = 'true';
+                }
 
                 // set additional information
                 $data['_file']          = $file;
@@ -111,26 +123,16 @@ class Cache
                 $data['time']           = null;
                 $data['numeric']        = null;
                 $data['last_modified']  = filemtime($file);
-
-                $data['_is_hidden']     = false;
-                $data['_is_draft']      = false;
+                $data['_is_hidden']     = $is_hidden;
+                $data['_is_draft']      = $is_draft;
 
                 // folder
-                $data['_folder'] = preg_replace(Pattern::ORDER_KEY, "", str_replace($full_content_root, "", $data['_file']));
+                $data['_folder'] = Path::clean($data['_local_path']);
                 $slash = strrpos($data['_folder'], "/");
                 $data['_folder'] = ($slash === 0) ? "" : substr($data['_folder'], 1, $slash - 1);
 
-                // fix hidden/draft files
-                $slug = basename($file, "." . $content_type);
-                if (substr($slug, 0, 2) === "__") {
-                    $data['_is_hidden'] = true;
-                    $data['slug'] = substr($slug, 2);
-                } elseif (substr($slug, 0, 1) === "_") {
-                    $data['_is_draft'] = true;
-                    $data['slug'] = substr($slug, 1);
-                } else {
-                    $data['slug'] = $slug;
-                }
+                // get initial slug (may be changed below)
+                $data['slug'] = ltrim(basename($file, "." . $content_type), "_");
 
                 $data['_basename'] = $data['slug'] . "." . $content_type;
                 $data['_filename'] = $data['slug'];
@@ -141,37 +143,39 @@ class Cache
                 if ($data['_local_path'] === "/404.{$content_type}") {
                     $local_filename = $local_path;
 
-                // order key
+                // order key: date or datetime                
                 } elseif (preg_match(Pattern::DATE_OR_DATETIME, $data['_basename'], $matches)) {
                     $date = $matches[1] . '-' . $matches[2] . '-' . $matches[3];
-                    $time = NULL;
+                    $time = null;
 
-                    if (isset($matches[4])) {
+                    if (Config::getEntryTimestamps() && isset($matches[4])) {
                         $time = substr($matches[4], 0, 2) . ":" . substr($matches[4], 2);
                         $date = $date . " " . $time;
 
-                        $data['slug'] = substr($data['slug'], 16);
-                        $data['datetimestamp'] = $data['_order_key'];
+                        $data['slug']           = substr($data['slug'], 16);
+                        $data['datetimestamp']  = $data['_order_key'];
                     } else {
-                        $data['slug'] = substr($data['slug'], 11);
+                        $data['slug']           = substr($data['slug'], 11);
                     }
 
                     $data['_order_key'] = strtotime($date);
                     $data['datestamp']  = $data['_order_key'];
                     $data['date']       = Date::format(Config::getDateFormat(), $data['_order_key']);
-                    $data['time']       = ($time) ? Date::format(Config::getTimeFormat(), $data['_order_key']) : NULL;
+                    $data['time']       = ($time) ? Date::format(Config::getTimeFormat(), $data['_order_key']) : null;
 
+                // order key: numeric
                 } elseif (preg_match(Pattern::NUMERIC, $data['_basename'], $matches)) {
                     $data['_order_key'] = $matches[1];
                     $data['numeric']    = $data['_order_key'];
                     $data['slug']       = substr($data['slug'], strlen($matches[1]) + 1);
 
+                // order key: other
                 } else {
                     $data['_order_key'] = $data['_basename'];
                 }
 
                 // determine url
-                $data['url'] = preg_replace("/\/__?/", "/", $local_filename);
+                $data['url'] = preg_replace("#/__?#", "/", $local_filename);
 
                 // remove any content type extensions from the end of filename
                 if (substr($data['url'], -$content_type_length) === "." . $content_type) {
@@ -279,6 +283,17 @@ class Cache
 
         File::put($time_file, $now);
         return true;
+    }
+
+
+    /**
+     * Get last cache update time
+     * 
+     * @return int
+     */
+    public static function getLastCacheUpdate()
+    {
+        return filemtime(BASE_PATH . "/_cache/_app/content/content.php");
     }
 
 

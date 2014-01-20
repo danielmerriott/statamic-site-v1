@@ -8,13 +8,16 @@ class Plugin_taxonomy extends Plugin
         $taxonomy_set = ContentService::getTaxonomiesByType($this->fetchParam('type', null));
         
         // folders
-        $folders = $this->fetchParam('folder', ltrim($this->fetchParam('from', URL::getCurrent()), "/"));
+        $folders = $this->fetchParam('folder', $this->fetchParam('folders', ltrim($this->fetchParam('from', URL::getCurrent()), "/")));
         $folders = ($folders === "/") ? "" : $folders;
 
         // now filter that down to just what we want
         $taxonomy_set->filter(array(
-            "folders"   => array($this->fetchParam('folder', null)),
-            "min_count" => $this->fetchParam('min_count', 1, 'is_numeric')
+            "folders"     => $folders,
+            "show_hidden" => false,
+            "min_count"   => $this->fetchParam('min_count', 1, 'is_numeric'),
+            "show_future" => $this->fetchParam('show_future', false, null, true, false),
+            "show_past"   => $this->fetchParam('show_past', true, null, true, false)
         ));
 
         // sort as needed

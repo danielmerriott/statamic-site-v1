@@ -64,7 +64,7 @@ class Theme
         $parser         = new Lex\Parser();
         $template_path  = Config::getTemplatesPath() . '/templates/' . ltrim($template, '/') . '.html';
 
-        return $parser->parse(File::get($template_path, ""), $data, FALSE);
+        return $parser->parse(File::get($template_path, ""), $data, array('statamic_view', 'callback'));
     }
 
 
@@ -79,7 +79,6 @@ class Theme
     {
         $templates = array();
         $list = glob("_themes/" . Helper::pick($theme, Config::getTheme()) . "/templates/*");
-
         if ($list) {
             foreach ($list as $name) {
                 if (is_dir($name)) {
@@ -102,7 +101,7 @@ class Theme
 
             return $templates;
         }
-        
+
         return array();
     }
 

@@ -1,5 +1,7 @@
 <?php
 
+use Intervention\Image\Image;
+
 class Hooks_redactor extends Hooks
 {
 
@@ -22,26 +24,38 @@ class Hooks_redactor extends Hooks
             if (class_exists('Fieldtype_redactor') && method_exists('Fieldtype_redactor', 'get_field_settings')) {
 
                 $field_settings = Fieldtype_redactor::get_field_settings();
+                $field_config = array_get($field_settings, 'field_config', $field_settings);
 
-                if (isset($field_settings['image_dir'])) {
-                    $image_path = Path::tidy($field_settings['image_dir'].'/');
+                if (array_get($field_config, 'image_dir', false)) {
+                    $image_path = Path::tidy($field_config['image_dir'].'/');
+
+                    $resize_options = array_get($field_config, 'resize', array());
+
+                    if (count($resize_options)) {
+                        $resize_options['resize'] = true;
+                    }
+
+                    $resize_options_string = http_build_query($resize_options);
+
                     $options['imageGetJson'] = Config::getSiteRoot()."TRIGGER/redactor/fetch_images?path={$image_path}";
-                    $options['imageUpload'] = Config::getSiteRoot()."TRIGGER/redactor/upload?path={$image_path}";
+                    $options['imageUpload'] = Config::getSiteRoot()."TRIGGER/redactor/upload?path={$image_path}&{$resize_options_string}";
                 }
 
-                if (isset($field_settings['file_dir'])) {
-                    $file_path = Path::tidy($field_settings['file_dir'].'/');
+                if (array_get($field_config, 'file_dir', false)) {
+                    $file_path = Path::tidy($field_config['file_dir'].'/');
+
                     $options['fileUpload'] = Config::getSiteRoot()."TRIGGER/redactor/upload?path={$file_path}";
                 }
 
-                if (isset($field_settings['image_dir_append_slug'])) {
+                if (isset($field_config['image_dir_append_slug'])) {
                     $options['uploadFields'] = array(
                         'subfolder' => '#publish-slug'
                     );
                 }
             }
 
-            $redactor_options = json_encode($options, JSON_FORCE_OBJECT);
+
+            $redactor_options = json_encode($options, true);
 
             $html .= "<script>
 
@@ -89,7 +103,6 @@ class Hooks_redactor extends Hooks
 
             Folder::make($dir);
 
-
             $_FILES['file']['type'] = strtolower($_FILES['file']['type']);
 
             if ($_FILES['file']['type'] == 'image/png'
@@ -108,7 +121,7 @@ class Hooks_redactor extends Hooks
 
                 // check for dupes
                 if (File::exists($file)) {
-                    $file = $dir.$filename.'-'.date('YmdHis').'.'.$ext;
+                    $file = BASE_PATH . '/' . $dir.$filename.'-'.date('YmdHis').'.'.$ext;
                 }
 
                 if ( ! Folder::isWritable($dir)) {
@@ -117,14 +130,26 @@ class Hooks_redactor extends Hooks
                     die();
                 }
 
-                copy($_FILES['file']['tmp_name'], $file);
+                if (Request::get('resize', false)) {
 
-                // display file
-                $array = array(
-                  'filelink' => Config::getSiteRoot().$file
-                );
+                    $image = Image::make($_FILES['file']['tmp_name']);
 
-                echo stripslashes(json_encode($array));
+                    $width   = Request::get('width', null);
+                    $height  = Request::get('height', null);
+                    $ratio   = Request::get('ratio', true);
+                    $upsize  = Request::get('upsize', false);
+                    $quality = Request::get('quality', '75');
+
+                    $image->resize($width, $height, $ratio, $upsize)
+                          ->save($file, $quality);
+
+                } else {
+                    copy($_FILES['file']['tmp_name'], $file);
+                }
+
+                $return = array('filelink' => Path::toAsset($file));
+
+                echo stripslashes(json_encode($return));
             } else {
                 echo json_encode(array('error' => "Redactor: Could not find directory: '$dir'"));
             }

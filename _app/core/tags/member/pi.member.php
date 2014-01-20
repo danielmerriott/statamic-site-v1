@@ -7,10 +7,32 @@ class Plugin_member extends Plugin
 
     $return = $this->fetchParam('return', $site_root);
 
-    $html = "<form method=\"post\" action=\"{$site_root}TRIGGER/member/login\">\n";
-    $html .= "<input type=\"hidden\" name=\"return\" value=\"$return\" />\n";
+    /*
+    |--------------------------------------------------------------------------
+    | Form HTML
+    |--------------------------------------------------------------------------
+    |
+    | The login form writes a hidden field to the form to set the return url.
+    | Form attributes are accepted as colon/piped options:
+    | Example: attr="class:form|id:contact-form"
+    |
+    | Note: The content of the tag pair is inserted back into the template
+    |
+    */
+
+    $attributes_string = '';
+
+    if ($attr = $this->fetchParam('attr', false)) {
+      $attributes_array = Helper::explodeOptions($attr, true);
+      foreach ($attributes_array as $key => $value) {
+        $attributes_string .= " {$key}='{$value}'";
+      }
+    }
+
+    $html  = "<form method='post' action='" . Path::tidy($site_root . "TRIGGER/member/login") . "' {$attributes_string}>";
+    $html .= "<input type='hidden' name='return' value='$return' />";
     $html .= $this->content;
-    $html .= "</form>\n";
+    $html .= "</form>";
 
     return $html;
 

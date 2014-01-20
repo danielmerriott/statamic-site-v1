@@ -1,5 +1,18 @@
 <?php
 
+/*
+|--------------------------------------------------------------------------
+| Hook: Routes Before
+|--------------------------------------------------------------------------
+|
+| Useful for running your own route. Remember to use $app->pass() if
+| you're not doing anything with the current request.
+|
+*/
+
+Hook::run('core', 'routes_before');
+
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
 // ROUTING HOOKS
 /////////////////////////////////////////////////////////////////////////////////////////////////
@@ -11,8 +24,9 @@ $app->map('/TRIGGER/:namespace/:hook', function ($namespace, $hook) use ($app) {
 })->via('GET', 'POST', 'HEAD');
 
 
+
 /////////////////////////////////////////////////////////////////////////////////////////////////
-// Static Asset Pipeline
+// Static Asset Pipeline (for development only!)
 /////////////////////////////////////////////////////////////////////////////////////////////////
 
 $app->get('/assets/(:segments+)', function($segments = array()) use ($app) {
@@ -28,6 +42,11 @@ $app->get('/assets/(:segments+)', function($segments = array()) use ($app) {
         readfile($file);
 
         exit();
+
+    } else {
+
+        // Moving on. Not a valid asset.
+        $app->pass();
     }
 
 });
@@ -39,6 +58,9 @@ $app->get('/assets/(:segments+)', function($segments = array()) use ($app) {
 
 $app->map('/(:segments+)', function ($segments = array()) use ($app) {
 
+    $requesting_xml = false;
+    $content_found  = false;
+
     // segments
     foreach ($segments as $key => $seg) {
         $count                            = $key + 1;
@@ -46,17 +68,56 @@ $app->map('/(:segments+)', function ($segments = array()) use ($app) {
     }
     $app->config['last_segment'] = end($segments);
 
-    // ignore segments via routes.yaml
+    /*
+    |--------------------------------------------------------------------------
+    | Routes: Ignore Segment
+    |--------------------------------------------------------------------------
+    |
+    | Globally ignore a specific URL segment. For example, "success".
+    |
+    */
     if (isset($app->config['_routes']['ignore']) && is_array($app->config['_routes']['ignore']) && count($app->config['_routes']['ignore']) > 0) {
         $ignore = $app->config['_routes']['ignore'];
 
         $remove_segments = array_intersect($ignore, $segments);
-        $segments        = array_diff($segments, $remove_segments);
+        $segments = array_diff($segments, $remove_segments);
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Routes: Ignore AFTER a Segment
+    |--------------------------------------------------------------------------
+    |
+    | Globally ignore all URL segments after a specified one. For example,
+    | "search" could let you use additional segments as match conditions.
+    |
+    */
+
+    if ($ignore_after = array_get($app->config, '_routes:ignore_after', false)) {
+
+        if ( ! is_array($ignore_after)) {
+            $ignore_after = array($ignore_after);
+        }
+
+        foreach ($ignore_after as $segment) {
+            $position = array_search($segment, $segments);
+
+            if ($position !== false) {
+                array_splice($segments, $position + 1);
+            }
+        }
     }
 
     // determine paths
-    $path                  = '/' . implode($segments, '/');
-    $current_url           = $path;
+    $path = '/' . implode($segments, '/');
+
+    // let XML files through
+    if (substr($path, -4) == '.xml') {
+        $path = substr($path, 0, -4);
+        $requesting_xml = true;
+    }
+
+    $current_url  = $path;
     $complete_current_url  = Path::tidy(Config::getSiteRoot() . "/" . $current_url);
 
     // allow mod_rewrite for .html file extensions
@@ -102,8 +163,9 @@ $app->map('/(:segments+)', function ($segments = array()) use ($app) {
         }
 
         $template_list = array($template);
+        $content_found = true;
 
-        // actual file exists
+    // actual file exists
     } elseif (File::exists("{$content_root}/{$path}.{$content_type}")) {
         $add_prev_next   = true;
         $template_list[] = 'post';
@@ -113,7 +175,11 @@ $app->map('/(:segments+)', function ($segments = array()) use ($app) {
         $data['current_url'] = $current_url;
         $data['slug']        = basename($current_url);
 
-        // url is taxonomy-based
+        if ($path !== "404") {
+            $content_found = true;
+        }
+
+    // url is taxonomy-based
     } elseif (Taxonomy::isTaxonomyURL($path)) {
         list($type, $slug) = Taxonomy::getCriteria($path);
 
@@ -128,13 +194,29 @@ $app->map('/(:segments+)', function ($segments = array()) use ($app) {
 
         $template_list[] = "taxonomies";
         $template_list[] = $type;
+        $content_found = true;
 
-        // this is a directory,so we look for page.md
+    // this is a directory,so we look for page.md
     } elseif (is_dir("{$content_root}/{$path}")) {
         $data = Content::get($complete_current_url);
+        $content_found = true;
 
-        // Not found. 404 O'Clock.
-    } else {
+    // URL found in the cache
+    } elseif ($data = Content::get($complete_current_url)) {
+        $add_prev_next   = true;
+        $page            = basename($path);
+
+        $data                = Content::get($complete_current_url);
+        $data['current_url'] = $current_url;
+        $data['slug']        = basename($current_url);
+
+        if ($path !== "404") {
+            $content_found = true;
+        }
+    }
+
+    // Nothing found. 404 O'Clock.
+    if (!$content_found || ($requesting_xml && (!isset($data['_type']) || $data['_type'] != 'xml'))) {
         // determine where user came from for log message
         if (strstr($path, 'favicon.ico')) {
             // Favicons are annoying.
@@ -196,15 +278,15 @@ $app->map('/(:segments+)', function ($segments = array()) use ($app) {
     }
 
     // status
-    if (preg_match("/\/_[^_]/", $path) && !$app->config['logged_in']) {
-        $data          = Content::get("/404");
+    if (isset($data['_is_draft']) && $data['_is_draft'] && !$app->config['logged_in']) {
+        $data          = Content::get(Path::tidy(Config::getSiteRoot() . "/404"));
         $template_list = array('404');
         $visible       = false;
         $response_code = 404;
 
-        // legacy status
+    // legacy status
     } elseif (isset($data['status']) && $data['status'] != 'live' && $data['status'] != 'hidden' && !$app->config['logged_in']) {
-        $data          = Content::get("/404");
+        $data          = Content::get(Path::tidy(Config::getSiteRoot() . "/404"));
         $template_list = array('404');
         $visible       = false;
         $response_code = 404;
@@ -221,15 +303,31 @@ $app->map('/(:segments+)', function ($segments = array()) use ($app) {
 
     // grab data for this folder
     $folder_data = Content::get(dirname($current_url));
+    $fields_data = YAML::parseFile(Path::tidy(BASE_PATH . "/" . Config::getContentRoot() . dirname($current_url) . '/fields.yaml'));
 
-    // set defaults for template and layout if needed
-    if (empty($data['_template']) && !empty($folder_data['_default_folder_template'])) {
-        $data['_template'] = $folder_data['_default_folder_template'];
+    // Check for fallback template
+    if (empty($data['_template'])) {
+        // check fields.yaml first
+        if (array_get($fields_data, '_default_folder_template')) {
+            $data['_template'] = $fields_data['_default_folder_template'];
+        // fall back to the folder's page.md file
+        } elseif (array_get($folder_data, '_default_folder_template')) {
+            $data['_template'] = $folder_data['_default_folder_template'];
+        }
     }
 
-    if (empty($data['_layout']) && !empty($folder_data['_default_folder_layout'])) {
-        $data['_layout'] = $folder_data['_default_folder_layout'];
+    // Check for fallback layout
+    if (empty($data['_layout'])) {
+        // check fields.yaml first
+        if (array_get($fields_data, '_default_folder_layout')) {
+            $data['_layout'] = $fields_data['_default_folder_layout'];
+        // fall back to the folder's page.md file
+        } elseif (array_get($folder_data, '_default_folder_layout')) {
+            $data['_layout'] = $folder_data['_default_folder_layout'];
+        }
     }
+
+
 
     // set template and layout
     if (isset($data['_template'])) {
@@ -245,12 +343,24 @@ $app->map('/(:segments+)', function ($segments = array()) use ($app) {
 
     // set type, allows for RSS feeds
     if (isset($data['_type'])) {
-        if ($data['_type'] == 'rss') {
-            $data['_xml_header']      = '<?xml version="1.0" encoding="utf-8"?>';
+        if ($data['_type'] == 'rss' || $data['_type'] == 'xml') {
+            $data['_xml_header']      = '<?xml version="1.0" encoding="utf-8" ?>';
             $response                 = $app->response();
             $response['Content-Type'] = 'application/xml';
         }
     }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Hook: Render Before
+    |--------------------------------------------------------------------------
+    |
+    | Allows actions to occur before the template is rendered and parsed.
+    | For example, pre-process a POST or set global variables dynamically.
+    |
+    */
+
+    Hook::run('core', 'render_before');
 
     // and go!
     $app->render(null, $data, $response_code);

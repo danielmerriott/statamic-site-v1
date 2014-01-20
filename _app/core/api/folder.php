@@ -23,7 +23,7 @@ class Folder
      */
     public static function make($path, $chmod = 0777)
     {
-        /* umask(0); */
+        umask(0);
         return ( ! is_dir($path)) ? mkdir($path, $chmod, TRUE) : TRUE;
     }
 

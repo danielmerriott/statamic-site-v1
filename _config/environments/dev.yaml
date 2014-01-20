@@ -4,6 +4,5 @@
 #
 ###########################################################################################
 
-enable_analytics: no
-show_framelessgrid: no
-show_lastmodified: yes
+# Just an example use case
+# enable_analytics: no

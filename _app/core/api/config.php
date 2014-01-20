@@ -80,18 +80,18 @@ class Config
 
 
     /**
-     * Returns the path to the add-ons directory
+     * Returns the path to the add-ons directory relative to the BASE_PATH
      *
      * @return string
      */
     public static function getAddOnsPath()
     {
-        return self::get('addons_path', Path::tidy(Config::getSiteRoot() . '_add-ons'));
+        return self::get('addons_path', '/_add-ons');
     }
 
 
     /**
-     * Returns the path for a given $addon
+     * Returns the path for a given $addon relative to the BASE_PATH
      *
      * @param string  $addon  Add-on to use
      * @return string

@@ -22,7 +22,7 @@ class Hooks_color extends Hooks
          */
         function control_panel__add_to_foot()
         {
-            if (URL::getCurrent() == '/publish') {
+            if (URL::getCurrent(false) == '/publish') {
                 $html  = $this->js->link('jquery.spectrum.js');
 
                 // load in global options

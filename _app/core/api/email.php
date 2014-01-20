@@ -146,8 +146,9 @@ class Email
                 $email->CharSet = 'UTF-8';
 
                 $email->AddAddress($attributes['to']);
-                $email->From    = $attributes['from'];
-                $email->Subject = $attributes['subject'];
+                $email->From     = $attributes['from'];
+                $email->FromName = $attributes['from'];
+                $email->Subject  = $attributes['subject'];
 
                 if (isset($attributes['text'])) {
                     $email->AltBody = $attributes['text'];
@@ -247,7 +248,7 @@ class Message extends \Stampie\Message
 
     /**
      * Sets the HTML of the message
-     * 
+     *
      * @param string $html
      */
     public function setHtml($html)
@@ -257,7 +258,7 @@ class Message extends \Stampie\Message
 
     /**
      * Sets the plain text of the message
-     * 
+     *
      * @param string $text
      * @throws \InvalidArgumentException
      */
@@ -272,7 +273,7 @@ class Message extends \Stampie\Message
 
     /**
      * Gets the HTML of the message
-     * 
+     *
      * @return string
      */
     public function getHtml()
@@ -282,7 +283,7 @@ class Message extends \Stampie\Message
 
     /**
      * Gets the plain text of the message
-     * 
+     *
      * @return string
      */
     public function getText()
@@ -292,7 +293,7 @@ class Message extends \Stampie\Message
 
     /**
      * Sets the from of the message
-     * 
+     *
      * @param string $from
      * @return void
      */
@@ -303,7 +304,7 @@ class Message extends \Stampie\Message
 
     /**
      * Gets the from of the message
-     * 
+     *
      * @return string
      */
     public function getFrom()
@@ -313,7 +314,7 @@ class Message extends \Stampie\Message
 
     /**
      * Sets the subject of the message
-     * 
+     *
      * @param string $subject  Subject to use
      * @return string
      */
@@ -324,7 +325,7 @@ class Message extends \Stampie\Message
 
     /**
      * Gets the subject of the message
-     * 
+     *
      * @return string
      */
     public function getSubject()
@@ -334,7 +335,7 @@ class Message extends \Stampie\Message
 
     /**
      * Sets a list of headers for the message
-     * 
+     *
      * @param array  $headers  Headers to set
      * @return void
      */
@@ -345,7 +346,7 @@ class Message extends \Stampie\Message
 
     /**
      * Gets a list of headers for the message
-     * 
+     *
      * @return array
      */
     public function getHeaders()
@@ -355,7 +356,7 @@ class Message extends \Stampie\Message
 
     /**
      * Gets the reply-to for the message
-     * 
+     *
      * @return string
      */
     public function getReplyTo()
@@ -365,7 +366,7 @@ class Message extends \Stampie\Message
 
     /**
      * Sets the CC emails for the message
-     * 
+     *
      * @param string  $cc  Email address(es) to CC
      * @return void
      */
@@ -376,7 +377,7 @@ class Message extends \Stampie\Message
 
     /**
      * Gets the CC emails for the message
-     * 
+     *
      * @return string
      */
     public function getCc()
@@ -386,7 +387,7 @@ class Message extends \Stampie\Message
 
     /**
      * Sets the BCC emails for the message
-     * 
+     *
      * @param string  $bcc  Email address(es) to BCC
      * @return void
      */
@@ -397,7 +398,7 @@ class Message extends \Stampie\Message
 
     /**
      * Gets the BCC emails for the message
-     * 
+     *
      * @return string
      */
     public function getBcc()

@@ -140,8 +140,41 @@ class Path
      */
     public static function clean($path)
     {
+        // remove draft and hidden flags
+        $path = preg_replace("#/_[_]?#", "/", $path);
+
+        // if we don't want entry timestamps, handle things manually
+        if (!Config::getEntryTimestamps()) {
+            $file     = substr($path, strrpos($path, "/"));
+            
+            // trim path if needed
+            if (-strlen($file) + 1 !== 0) {
+                $path = substr($path, 0, -strlen($file) + 1);
+            }
+            
+            $path     = preg_replace(Pattern::ORDER_KEY, "", $path);
+            $pattern  = (preg_match(Pattern::DATE, $file)) ? Pattern::DATE : Pattern::ORDER_KEY;
+            $file     = preg_replace($pattern, "", $file);
+
+            return Path::tidy($path . $file);
+        }
+        
+        // otherwise, just remove all order-keys
         return preg_replace(Pattern::ORDER_KEY, "", $path);
     }
+
+
+    /**
+     * Pretty, end user paths
+     *
+     * @param string  $path  Path to clean
+     * @return string
+     */
+    public static function pretty($path)
+    {
+        return self::tidy(self::clean('/' . $path));
+    }
+
 
 
     /**
@@ -171,11 +204,30 @@ class Path
         return str_replace(self::standardize(BASE_PATH) . "/" . Config::getContentRoot(), "", $path);
     }
 
+
+    /**
+     * Creates a URL-friendly path from webroot
+     *
+     * @param string  $path  Path to trim
+     * @return string
+     */
     public static function toAsset($path)
     {
         $asset_path = self::trimFilesystem($path);
 
         return self::standardize(self::tidy(Config::getSiteRoot().$asset_path));
+    }
+
+
+    /**
+     * Creates a full system path from an asset URL
+     *
+     * @param string  $path  Path to start from
+     * @return string
+     */
+    public static function fromAsset($path)
+    {
+        return BASE_PATH . str_replace(Config::getSiteRoot(), '/', $path);
     }
 
 
@@ -188,5 +240,53 @@ class Path
     public static function standardize($path)
     {
         return str_replace('\\', '/', $path);
+    }
+
+
+    /**
+     * Prepends a / to a given $path if it's not there
+     *
+     * @param string  $path  path to check
+     * @return string
+     */
+    public static function addStartingSlash($path)
+    {
+        return (substr($path, 0, 1) !== '/') ? '/' . $path : $path;
+    }
+
+
+    /**
+     * Removes the / from the beginning of a given $path if it's there
+     *
+     * @param string  $path  path to check
+     * @return string
+     */
+    public static function removeStartingSlash($path)
+    {
+        return (substr($path, 0, 1) === '/') ? substr($path, 1) : $path;
+    }
+
+
+    /**
+     * Checks to see if this path is a draft
+     *
+     * @param string  $path  Path to check
+     * @return boolean
+     */
+    public static function isDraft($path)
+    {
+        return (strpos($path, '/__') !== false);
+    }
+
+
+    /**
+     * Checks to see if this path is hidden
+     *
+     * @param string  $path  Path to check
+     * @return boolean
+     */
+    public static function isHidden($path)
+    {
+        return (bool) (preg_match("#/_[^_]#", $path));
     }
 }

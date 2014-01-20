@@ -31,7 +31,7 @@ class Parse
      * @param string  $callback  Callback to call when done
      * @return string
      */
-    public static function template($html, $variables, $callback = null)
+    public static function template($html, $variables, $callback = array('statamic_view', 'callback'))
     {
         $parser = new \Lex\Parser();
         $parser->cumulativeNoparse(TRUE);
@@ -113,7 +113,7 @@ class Parse
                 "key" => trim($parts[0]),
                 "value" => Parse::conditionValue(trim($parts[1]))
             );
-            
+
         // doesn't have a colon, looking for existence (or lack thereof)
         } else {
             $condition = trim($condition);
@@ -121,7 +121,7 @@ class Parse
                 "key" => $condition,
                 "value" => array()
             );
-            
+
             if (substr($condition, 0, 1) === "!") {
                 $condition_array['key'] = substr($condition, 1);
                 $condition_array['value'] = array(
@@ -151,17 +151,81 @@ class Parse
     {
         // found a bar, split this
         if (strstr($value, "|")) {
-            $item = array(
-                "kind" => "comparison",
-                "type" => "in",
-                "value" => explode("|", $value)
-            );
+            if (substr($value, 0, 4) == "not ") {
+                $item = array(
+                    "kind" => "comparison",
+                    "type" => "not in",
+                    "value" => explode("|", substr($value, 4))
+                );
+            } else {
+                $item = array(
+                    "kind" => "comparison",
+                    "type" => "in",
+                    "value" => explode("|", $value)
+                );
+            }
         } else {
             if (substr($value, 0, 4) == "not ") {
                 $item = array(
                     "kind" => "comparison",
                     "type" => "not equal",
                     "value" => substr($value, 4)
+                );
+            } elseif (substr($value, 0, 2) == "<=") {
+                // less than or equal to
+                $item = array(
+                    "kind" => "comparison",
+                    "type" => "less than or equal to",
+                    "value" => substr($value, 2)
+                );
+            } elseif (substr($value, 0, 3) == "<= ") {
+                // less than or equal to
+                $item = array(
+                    "kind" => "comparison",
+                    "type" => "less than or equal to",
+                    "value" => substr($value, 3)
+                );
+            } elseif (substr($value, 0, 2) == ">=") {
+                // greater than or equal to
+                $item = array(
+                    "kind" => "comparison",
+                    "type" => "greater than or equal to",
+                    "value" => substr($value, 2)
+                );
+            } elseif (substr($value, 0, 3) == ">= ") {
+                // greater than or equal to
+                $item = array(
+                    "kind" => "comparison",
+                    "type" => "greater than or equal to",
+                    "value" => substr($value, 3)
+                );
+            } elseif (substr($value, 0, 1) == ">") {
+                // greater than
+                $item = array(
+                    "kind" => "comparison",
+                    "type" => "greater than",
+                    "value" => substr($value, 1)
+                );
+            } elseif (substr($value, 0, 2) == "> ") {
+                // greater than
+                $item = array(
+                    "kind" => "comparison",
+                    "type" => "greater than",
+                    "value" => substr($value, 2)
+                );
+            } elseif (substr($value, 0, 1) == "<") {
+                // less than
+                $item = array(
+                    "kind" => "comparison",
+                    "type" => "less than",
+                    "value" => substr($value, 1)
+                );
+            } elseif (substr($value, 0, 2) == "< ") {
+                // less than
+                $item = array(
+                    "kind" => "comparison",
+                    "type" => "less than",
+                    "value" => substr($value, 2)
                 );
             } else {
                 $item = array(

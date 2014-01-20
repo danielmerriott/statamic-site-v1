@@ -395,7 +395,7 @@
 
             // place modal if not already on screen
             if (!$("#modal-placement").length) {
-                $("#screen").after('<div id="modal-placement"></div>');
+                $("#wrap").after('<div id="modal-placement"></div>');
             }
 
             if (!$("#location-modal .modal-body ul li").length) {
@@ -437,7 +437,7 @@
 
             // place modal if not already on screen
             if (!$("#modal-placement").length) {
-                $("#screen").after('<div id="modal-placement"></div>');
+                $("#wrap").after('<div id="modal-placement"></div>');
             }
 
             // bind events
