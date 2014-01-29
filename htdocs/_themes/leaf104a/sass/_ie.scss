@@ -1,0 +1,29 @@
+// =====================================
+// IE RULES
+// =====================================
+
+/* ==========================================================================
+   *** IE FIXES ***
+   ========================================================================== */
+
+
+// Until IE8 disappears this is where you can put your IE styles.
+// Usually the code from within media queries on a mobile first design.
+
+// <!--[if lt IE 7]>      <html class="no-js lt-ie9 lt-ie8 lt-ie7"> <![endif]-->
+// <!--[if IE 7]>         <html class="no-js lt-ie9 lt-ie8"> <![endif]-->
+// <!--[if IE 8]>         <html class="no-js lt-ie9"> <![endif]-->
+// <!--[if gt IE 8]><!--> <html class="no-js"> <!--<![endif]-->
+
+
+.lt-ie9 {
+	
+}
+
+.lt-ie8 {
+	
+}
+
+.lt-ie7 {
+
+}

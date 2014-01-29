@@ -1,0 +1,34 @@
+{{# add site root #}}
+  <url>
+    <loc>{{ _site_url }}</loc>
+    <lastmod>{{ last_modified format="Y-m-d" }}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.8</priority>
+  </url>
+{{ nav from="/" }}
+  <url>
+    <loc>{{ _site_url }}{{ url }}</loc>
+    <lastmod>{{ last_modified format="Y-m-d" }}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+{{ /nav }}
+{{ entries:listing folder="{blog_name}" limit="1000" sort_dir="desc" }}
+  {{ if url != "/sitemap.xml" }}
+  <url>
+    <loc>{{ _site_url }}{{ url }}</loc>
+    <lastmod>{{ datestamp format="Y-m-d" }}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.6</priority>
+  </url>
+  {{ endif }}
+{{ /entries:listing }}
+
+{{# 
+====================================
+  NOTES
+====================================
+
+This template generates a site map which includes your main blog articles and any links generated from your navigation. If your content folder is not called blog change the folder parameter to whatever you have named the folder in the theme.yaml file.
+  
+#}}

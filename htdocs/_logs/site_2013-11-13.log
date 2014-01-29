@@ -1,0 +1,8 @@
+ERROR|Wed, 13 Nov 2013 04:48:56 +1300|external|content|/&|173.245.62.170|live|404 - Page not found. User clicked an outside bad link at <a href="http://www.urlopener.com/index.php">http://www.urlopener.com/index.php</a>.
+INFO|Wed, 13 Nov 2013 04:53:17 +1300|site|favicon|/favicon.ico|173.245.62.173|live|The site favicon could not be found.
+INFO|Wed, 13 Nov 2013 10:35:56 +1300|site|favicon|/favicon.ico|173.245.54.48|live|The site favicon could not be found.
+INFO|Wed, 13 Nov 2013 10:53:29 +1300|site|favicon|/favicon.ico|108.162.208.200|live|The site favicon could not be found.
+INFO|Wed, 13 Nov 2013 14:42:30 +1300|site|favicon|/favicon.ico|108.162.250.135|live|The site favicon could not be found.
+INFO|Wed, 13 Nov 2013 16:36:39 +1300|site|favicon|/favicon.ico|108.162.250.135|live|The site favicon could not be found.
+ERROR|Wed, 13 Nov 2013 17:22:57 +1300|external|content|/&|108.162.208.219|live|404 - Page not found. User clicked an outside bad link at <a href="http://www.urlopener.com/index.php">http://www.urlopener.com/index.php</a>.
+INFO|Wed, 13 Nov 2013 17:23:01 +1300|site|favicon|/favicon.ico|108.162.208.220|live|The site favicon could not be found.

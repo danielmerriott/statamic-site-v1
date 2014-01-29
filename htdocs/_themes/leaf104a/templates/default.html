@@ -1,0 +1,29 @@
+<div id="main">
+  <section role=main>
+  <h2>{{ title }}</h2>
+  {{ content }}
+  </section>
+</div><!-- END .main -->
+
+<div id="articles">
+{{ theme:partial src="_article_listing" fold="{blog_name}" lim="5" tax="no" }}
+</div>
+
+{{# 
+====================================
+  NOTES
+====================================
+
+This is the default template (required), if you choose to not specify a template in your front matter, Statamic uses the following template hierarchy:
+
+If present: post.html
+Otherwise, if present: default.html
+Otherwise: 404.html
+
+See http://statamic.com/learn/core-concepts/how-pages-are-built for more information.
+
+This template is using the articles template partial with a variable which sets
+the limit (number of posts to display). Change the lim="5" variable to however many
+posts you would like to display.
+  
+#}}

@@ -1,0 +1,121 @@
+// =====================================
+// GRID.SCSS
+// =====================================
+
+// ==========================
+// COMPASS, VARIABLES
+// ==========================
+@import "variables";
+@import "compass";
+
+// =================
+// FRAMELESS GRID
+// =================
+@import "frameless";
+
+// =====================================
+//
+// Formatting for the grid (only shown if statamic has 'show_framelessgrid' set to yes)
+//
+
+$gridemphasis:  rgb(23,23,23);
+$gridhighlight: rgb(232,232,232);
+
+/* ==========================================================================
+   *** GRID HELPERS - DEBUGGING ONLY ***
+   ========================================================================== */
+
+#grid {
+	height: cols(1);
+	position: relative;
+	overflow: hidden;
+}
+
+	.col {
+		background: $gridhighlight;
+		height: 100%;
+		width: cols(1);
+		position: absolute;
+		left: 50%; top: 0;
+		margin-left: ($gutter/2);
+	}
+	
+	#grid .col {
+		@include transition(background-color 0.4s ease-out);
+	}
+		.col2 {margin-left: (1*($gutter+$column)+$gutter/2);}
+		.col3 {margin-left: (2*($gutter+$column)+$gutter/2);}
+		.col4 {margin-left: (3*($gutter+$column)+$gutter/2);}
+		.col5 {margin-left: (4*($gutter+$column)+$gutter/2);}
+		.col6 {margin-left: (5*($gutter+$column)+$gutter/2);}
+		.col7 {margin-left: (6*($gutter+$column)+$gutter/2);}
+		.col8 {margin-left: (7*($gutter+$column)+$gutter/2);}
+		.col9 {margin-left: (8*($gutter+$column)+$gutter/2);}
+		.col10 {margin-left: (9*($gutter+$column)+$gutter/2);}
+		.col11 {margin-left: (10*($gutter+$column)+$gutter/2);}
+		.col12 {margin-left: (11*($gutter+$column)+$gutter/2);}
+		.col13 {margin-left: (12*($gutter+$column)+$gutter/2);}
+		.col14 {margin-left: (13*($gutter+$column)+$gutter/2);}
+		.col15 {margin-left: (14*($gutter+$column)+$gutter/2);}
+		.col16 {margin-left: (15*($gutter+$column)+$gutter/2);}
+		.col17 {margin-left: (16*($gutter+$column)+$gutter/2);}
+		.col18 {margin-left: (17*($gutter+$column)+$gutter/2);}
+		
+		.col19 {margin-left: (-1*($gutter+$column)+$gutter/2);}
+		.col20 {margin-left: (-2*($gutter+$column)+$gutter/2);}
+		.col21 {margin-left: (-3*($gutter+$column)+$gutter/2);}
+		.col22 {margin-left: (-4*($gutter+$column)+$gutter/2);}
+		.col23 {margin-left: (-5*($gutter+$column)+$gutter/2);}
+		.col24 {margin-left: (-6*($gutter+$column)+$gutter/2);}
+		.col25 {margin-left: (-7*($gutter+$column)+$gutter/2);}
+		.col26 {margin-left: (-8*($gutter+$column)+$gutter/2);}
+		.col27 {margin-left: (-9*($gutter+$column)+$gutter/2);}
+		.col28 {margin-left: (-10*($gutter+$column)+$gutter/2);}
+		.col29 {margin-left: (-11*($gutter+$column)+$gutter/2);}
+		.col30 {margin-left: (-12*($gutter+$column)+$gutter/2);}
+		.col31 {margin-left: (-13*($gutter+$column)+$gutter/2);}
+		.col32 {margin-left: (-14*($gutter+$column)+$gutter/2);}
+		.col33 {margin-left: (-15*($gutter+$column)+$gutter/2);}
+		.col34 {margin-left: (-16*($gutter+$column)+$gutter/2);}
+		.col35 {margin-left: (-17*($gutter+$column)+$gutter/2);}
+		.col36 {margin-left: (-18*($gutter+$column)+$gutter/2);}
+
+/* media query based changes */
+
+// mobile - 4cols
+@media screen and (min-width: 15em) {
+	.col1, .col2, .col19, .col20 {
+		background: $gridemphasis;}}
+
+
+// wide mobile - 6cols
+@media screen and (min-width: 30em) {
+	#grid {
+		height: cols(1);}
+		.col3, .col21 {
+			background: $gridemphasis;}}
+
+
+// tablet - 8cols
+@media screen and (min-width: 37.5em) {
+	#grid {
+		height: cols(1);}
+		.col4, .col22 {
+			background: $gridemphasis;}}
+
+
+// widescreen - 12cols
+@media screen and (min-width: 57em) {
+	#grid {
+		height: cols(1);}
+		.col5, .col6, .col23, .col24 {
+			background: $gridemphasis;}}
+
+
+//hugescreen - 26cols
+@media screen and (min-width: 118em) {
+	#grid {
+		height: cols(1);}
+		.col7, .col8, .col9, .col10, .col11, .col12, .col13,
+		.col25, .col26, .col27, .col28, .col29, .col30, .col31 {
+			background: $gridemphasis;}}

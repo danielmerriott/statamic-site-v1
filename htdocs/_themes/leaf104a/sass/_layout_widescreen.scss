@@ -1,0 +1,79 @@
+// =====================================
+// LAYOUT RULES - WIDE SCREEN
+// =====================================
+
+/* ==========================================================================
+   *** LAYOUT - WIDE SCREEN - 12 COLUMNS ***
+   ========================================================================== */
+
+//	Widescreen layout 
+//	1024-1887 px
+//	Zoomed in above 912 px
+
+// zoom in between 1230 and 1639 px
+@media screen and (min-width: 77.5em) and (max-width: 102.4375em) {
+	body {font-size: ($base-font-size + 1);}}
+
+// zoom in further between 1640 and 1887 px
+@media screen and (min-width: 102.5em) and (max-width: 117.9375em) {
+	body {font-size: ($base-font-size + 2);}}
+
+// wide screen layout
+@media screen and (min-width: 64em) {
+
+	/* 12 column layout */
+	#container {
+			width: cols(12);
+			margin-left: auto;
+			margin-right: auto;
+			margin-top: $gutter;
+			margin-bottom: $gutter;
+	}
+	
+	/* nav */
+	#navdrop { display: none; }
+	#navbar { display: block; }
+	#navbar a {
+		list-style: none;
+		text-align: center;
+		float: left;
+		width: cols(2);
+		height: $column;
+		padding: $column/4 $column/10;
+		margin-right: $gutter;	
+	}
+	#navbar a:last-child {
+		margin-right: 0;
+	}
+
+	/* social */
+	#social {
+		height: cols(2);
+		margin: 0 0 $gutter/2 $gutter;
+		padding-top: $column;
+	}
+	#socialtitle {
+		float: none;
+		//vertical-align: bottom ;
+	}
+	#social ul {
+		position: relative;
+		top: -$gutter/2;
+	}
+	#social a {
+		//vertical-align: bottom;
+	}
+
+	/* footer */
+	#footerimg {
+		margin-left: cols(3);
+		height: cols(1);
+		width: cols(3);
+		background: url("/assets/img/logo-white-200.png") right center no-repeat;
+		background-size: 65%;
+		overflow: hidden;
+	}
+
+}
+
+

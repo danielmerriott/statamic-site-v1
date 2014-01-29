@@ -1,0 +1,60 @@
+{{ if show_social }}
+
+<div id="social">
+ <div id="socialbar">
+  <div id="socialtitle">{{ followus_text|title }}</div>
+  <ul>
+  {{ if show_adn }}
+   <li>
+    <a class="icon-stack" href="{{ adn_url }}" title="{{ followus_text }} on app.net">
+     <i class="icon-stack-base icon-sign-blank"></i>
+     <i class="icon-stack-top icon-light icon-large icon-adn"></i>
+   </a>
+   </li>
+   {{ endif }}
+  {{ if show_twitter }}
+   <li>
+    <a class="icon-stack" href="{{ twitter_url }}" title="{{ followus_text }} on twitter">
+     <i class="icon-stack-base icon-sign-blank"></i>
+     <i class="icon-stack-top icon-light icon-large icon-twitter"></i>
+   </a>
+   </li>
+   {{ endif }}
+   {{ if show_linkedin }}
+   <li>
+    <a class="icon-stack" href="{{ linkedin_url }}" title="{{ followus_text }} on LinkedIn">
+     <i class="icon-stack-base icon-sign-blank"></i>
+     <i class="icon-stack-top icon-light icon-large icon-linkedin"></i>
+    </a>
+   </li>
+   {{ endif }}
+   {{ if show_facebook }}
+   <li>
+    <a class="icon-stack" href="{{ facebook_url }}" title="{{ followus_text }} on Facebook">
+     <i class="icon-stack-base icon-sign-blank"></i>
+     <i class="icon-stack-top icon-light icon-large icon-facebook"></i>
+    </a>
+   </li>
+   {{ endif }}
+   {{ if show_rss }}
+   <li>
+    <a class="icon-stack" href="{{ rss_url }}" title="{{ followus_text }} in your favourite feed reader">
+      <i class="icon-stack-base icon-sign-blank"></i>
+      <i class="icon-stack-top icon-light icon-large icon-rss"></i>
+    </a>
+   </li>
+   {{ endif }}
+  </ul>
+ </div>
+</div><!-- END .sociallinks -->
+
+{{ endif }}
+
+{{# 
+====================================
+  NOTES
+====================================
+
+This is the social links partial, used to show links to social networks.
+  
+#}}

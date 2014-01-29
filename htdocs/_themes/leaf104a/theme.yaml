@@ -1,0 +1,56 @@
+###########################################################################################
+#
+#  THEME VARIABLES
+#
+###########################################################################################
+
+# Theme name
+theme_name: Leaf 104
+
+# Site Description
+site_desc: "Openleaf is a unique business and management consultancy based in Auckland."
+
+# Header modules to show/hide
+show_search: no
+show_social: no
+show_framelessgrid: no
+
+# Social Links
+followus_text: "Follow us"
+show_adn: yes
+adn_url: "http://app.net/openleaf"
+show_twitter: yes
+twitter_url: "http://twitter.com/openleaf"
+show_facebook: yes
+facebook_url: "http://facebook.com/openleaf"
+show_linkedin: yes
+linkedin_url: "http://linkedin.com/openleaf"
+show_rss: yes
+rss_url: "/feed"
+
+# Footer modules to show/hide
+show_statamic: no
+show_privacy: no
+show_copyright: yes
+show_privacy: no
+show_footerimg: yes
+
+# Site Copyright
+copyright_holder: "Openleaf Limited"
+copyright_start: "2013"
+copyright_url: "/"
+
+# Site Privacy
+privacy_url: "/privacy"
+
+# Global text snippets
+no_results_text: "Sorry, no results found."
+
+# Blog
+blog_name: articles
+show_tags: yes
+show_categories: yes
+
+# Comments + Disqus
+disqus_account: changeme
+show_comments: no

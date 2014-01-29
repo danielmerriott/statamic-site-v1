@@ -1,0 +1,19 @@
+title: Standard Page
+include: meta                  # include the meta fields
+
+fields:
+  title:
+    default: Page Title
+    instructions: "Enter the main page title here."
+
+  _template:
+    type: hidden
+    default: page
+
+  content:
+    display: Page Content
+    type: redactor
+    image_dir: assets/img/page  #make sure the folder exists and is writeable
+    instructions: "Add the main page content here."
+    
+# This is the standard page fieldset it pulls in the meta fields and sets the template to always use the page template.

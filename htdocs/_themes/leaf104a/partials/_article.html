@@ -1,0 +1,66 @@
+<div class="article">
+<article>
+  <div class="article-header">
+  <header>
+    <h2>{{ title }}</h2>
+    <div class="article-datetime">
+    <time pubdate datetime="{{ datestamp format="Y-m-d" }}">{{ date }}</time>
+    <div><!-- END .article-datetime -->
+    
+
+    {{ if show_categories }}
+    {{ if categories_list }}
+    <div class="article-categories">
+      Filed under: {{ categories_url_list }}
+    </div>
+    {{ endif }}
+    {{ endif }}
+
+  </header>
+  </div><!-- END .article-header -->
+
+  {{ if main_img|not_empty }}
+  <div class="article-mainimg">
+  {{ image src="{{ main_img }}" dim="550x400(" }}
+    <img src="{{ image_url }}" alt="">
+  {{ /image }}
+  </div><!-- END .article-mainimg -->
+  {{ endif }}
+
+  <div class="article-main">
+  {{ content }}
+  </div><!-- END .article-main -->
+
+  {{ if show_tags }}
+  {{ if tags_list }}
+  <div class="article-tags">
+    Tagged with: {{ tags_url_list }}
+  </div>
+  {{ endif }}
+  {{ endif }}
+
+  <div class="article-footer">
+  <footer>
+    <a href="/" class="btn back">&larr; back</a>
+  </footer>
+  </div><!-- END .article-footer -->
+</article>
+</div>
+
+{{ if show_comments }}
+<div class="article-comments">
+  <h3>Leave Your Comments</h3>
+  {{ disqus:comments account="{ disqus_account }" }}
+</div><!-- END .article-comments -->
+{{ endif }}
+
+{{#
+====================================
+  NOTES
+====================================
+
+This partial displays a single article if you require a listing use the _article_listings partial. The partials are designed so that you can use them modularly in your templates.
+
+There is a comments section which uses Disqus, to make this work you will need to set comments to yes in the theme.yaml file and add your Disqus short name in the same file. For more information on using Disqus comments see this post: http://garethredfern.com/article/using-disqus-with-statamic.
+
+ #}}

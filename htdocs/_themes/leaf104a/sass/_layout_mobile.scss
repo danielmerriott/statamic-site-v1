@@ -1,0 +1,38 @@
+// =====================================
+// LAYOUT RULES - MOBILE
+// =====================================
+
+/* ==========================================================================
+   *** LAYOUT - MOBILE - 4 COLUMNS ***
+   ========================================================================== */
+
+//	Mobile layout 
+//	240–479 px
+//	Zoomed out below 320 px
+
+// zoom out below 320 px
+@media screen and (min-width: 17em) and (max-width: 19.9375em) {
+	body {font-size: ($base-font-size - 1);}}
+
+// zoom out further below 270 px
+@media screen and (max-width: 16.875em) {	
+	body {font-size: ($base-font-size - 2);}}
+
+// layout for mobile screens
+   //@media screen and (min-width: 15em)
+@media screen and (max-width: 29.9375em) {
+
+	/* 4 column layout */
+	#container {
+			width: cols(4);
+			margin-left: auto;
+			margin-right: auto;
+	}
+	
+	/* nav */
+	#navdrop { display: block; }
+	#navbar { display: none; }
+
+}
+
+

@@ -1,0 +1,45 @@
+// =====================================
+// COLOURS
+// =====================================
+
+/* ==========================================================================
+   *** COLOURS ***
+   ========================================================================== */
+
+//
+body {
+    color: $oldarkgrey;
+    background: $olbackground;
+}
+
+// links
+$normal:  $ollightgreen;
+$hover:   $oldarkgrey;
+$active:  $oldarkgreen;
+$visited: $ollightgreen;
+$focus:   $black;
+
+a {
+	@include link-colors($normal, $hover, $active, $visited, $focus);
+}
+
+// selections
+
+::selection, ::-moz-selection {
+	background: $oldarkgreen;
+	color: $white;
+}
+img::selection, img::-moz-selection,
+details::selection, details::-moz-selection,
+summary::selection, summary::-moz-selection {
+	background: transparent;
+}
+
+
+body {
+	-webkit-tap-highlight-color: $oltransgreen;
+}
+
+.icon-green {
+	color: $oldarkgreen;
+}

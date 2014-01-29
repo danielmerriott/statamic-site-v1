@@ -1,0 +1,83 @@
+{{ entries:listing
+  folder="{fold}"
+  limit="{lim}"
+  taxonomy="{tax}"
+}}
+  {{ if no_results }}
+  <p>Sorry there are no entries to display at this time.</p>
+  {{ else }}
+
+    {{ if count == "1" }}
+    <ol>
+    {{ endif }}
+      <li>
+        <div class="article-listing">
+        <article>
+          <h3><a href="{{ url }}">{{ title }}</a></h3>
+          <div class="article-datetime">
+          <time pubdate datetime="{{ datestamp format="Y-m-d" }}">{{ date }}</time>
+          </div><!-- END .article-datetime -->
+
+          {{ if show_categories }}
+            {{ if categories_list }}
+              <div class="article-categories">
+                Filed under: {{ categories_url_list }}
+              </div>
+            {{ endif }}
+          {{ endif }}
+
+          {{ if main_img|not_empty }}
+            <div class="article-mainimg">
+              {{ image src="{{ main_img }}" dim="550x400(" }}
+                <img src="{{ image_url }}" alt="">
+              {{ /image }}
+            </div><!-- END .article-mainimg -->
+          {{ endif }}
+
+          {{ if show_tags }}
+            {{ if tags_list }}
+              <div class="article-tags">
+                Tagged with: {{ tags_url_list }}
+              </div>
+            {{ endif }}
+          {{ endif }}
+
+          {{ summary|markdown }}
+        </article>  
+        </div><!-- END .article-listing -->
+      </li>
+    {{ if count == total_results }}
+    </ol>
+    {{ endif }}
+
+  {{ endif }}
+{{ /entries:listing }}
+
+{{# Add simple pagination: limit must equal entries limit #}}
+
+{{ entries:pagination
+    folder="{fold}"
+    limit="{lim}"
+    taxonomy="{tax}"
+  }}
+  {{# THIS SHOULD USE LIM VARIABLE BUT DOESN'T WORK - FIX COMING 1.5 #}}
+  {{ if total_items > "5" }}
+  <div class="pagination">
+    {{ if previous_page }}
+      <a href="{{ previous_page }}" class="prev">&larr; Previous Page</a>
+    {{ endif }}
+    {{ if next_page }}
+      <a href="{{ next_page }}" class="next">Next Page &rarr;</a>
+    {{ endif }}
+  </div><!-- END .pagination -->
+  {{ endif }}
+{{ /entries:pagination }}
+
+{{# 
+====================================
+  NOTES
+====================================
+
+This partial displays an article listing. The partials are designed so that you can use them modularly in your templates. The variables which are used in the entries listing tag are set in the template which calls the partial e.g. look in the default template you will see three variables: fold, lim, and tax. It is here where you set those values to whichever folder name the articles are reading from e.g. blog, the number of articles to display (lim) and whether you are displaying taxonomies or not.
+
+#}}

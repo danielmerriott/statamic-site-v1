@@ -1,0 +1,50 @@
+// =====================================
+// LAYOUT RULES - TABLET
+// =====================================
+
+/* ==========================================================================
+   *** LAYOUT - TABLET - 8 COLUMNS ***
+   ========================================================================== */
+
+//	Tablet layout 
+//	680-1023 px
+
+// zoom in between 720 and 911 px
+@media screen and (min-width: 45em) and (max-width: 56.9375em) {
+	body {font-size: ($base-font-size + 1);}}
+
+// zoom in further between 911 px and 1024px
+@media screen and (min-width: 57em) and (max-width: 63.9375em) {
+	body {font-size: ($base-font-size + 2);}}
+
+// tablet layout
+@media screen and (min-width: 42.5em) {
+
+	/* 8 column layout */
+	#container {
+			width: cols(8);
+			margin-left: auto;
+			margin-right: auto;
+	}
+	
+	/* page banner */
+	#pagebanner {
+	}
+
+	/* nav */
+
+	#navdrop { display: block; }
+	#navbar { display: none; }
+
+	/* page footer */
+
+	#footerimg {
+		margin-left: cols(1);
+		height: cols(1);
+		width: cols(3);
+		background: url("/assets/img/logo-white-200.png") right center no-repeat;
+		background-size: 60%;
+		overflow: hidden;
+	}
+}
+

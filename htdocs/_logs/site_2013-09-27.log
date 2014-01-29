@@ -1,0 +1,4 @@
+ERROR|Fri, 27 Sep 2013 04:00:55 +1200|visitor|content|/&|141.101.99.69|live|404 - Page not found. Visitor came directly to this page and may have typed the URL incorrectly.
+INFO|Fri, 27 Sep 2013 08:56:21 +1200|site|favicon|/favicon.ico|108.162.250.135|live|The site favicon could not be found.
+INFO|Fri, 27 Sep 2013 12:50:08 +1200|site|favicon|/favicon.ico|173.245.55.163|live|The site favicon could not be found.
+INFO|Fri, 27 Sep 2013 14:05:01 +1200|site|favicon|/favicon.ico|108.162.250.135|live|The site favicon could not be found.

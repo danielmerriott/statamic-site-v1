@@ -1,0 +1,5 @@
+ERROR|Thu, 02 Jan 2014 15:29:01 +1300|visitor|content|/favicon.png|173.245.56.179|live|404 - Page not found. Visitor came directly to this page and may have typed the URL incorrectly.
+ERROR|Thu, 02 Jan 2014 15:29:02 +1300|visitor|content|/favicon.gif|173.245.54.192|live|404 - Page not found. Visitor came directly to this page and may have typed the URL incorrectly.
+INFO|Thu, 02 Jan 2014 15:29:02 +1300|site|favicon|/favicon.ico|173.245.54.90|live|The site favicon could not be found.
+ERROR|Thu, 02 Jan 2014 16:38:26 +1300|visitor|content|/autodiscover/autodiscover.xml|108.162.249.190|live|404 - Page not found. Visitor came directly to this page and may have typed the URL incorrectly.
+INFO|Thu, 02 Jan 2014 18:49:59 +1300|site|favicon|/favicon.ico|108.162.250.138|live|The site favicon could not be found.
