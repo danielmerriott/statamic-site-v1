@@ -1,8 +1,0 @@
-ERROR|Fri, 27 Dec 2013 09:02:41 +1300|visitor|content|/autodiscover/autodiscover.xml|108.162.249.190|live|404 - Page not found. Visitor came directly to this page and may have typed the URL incorrectly.
-ERROR|Fri, 27 Dec 2013 09:02:42 +1300|visitor|content|/autodiscover/autodiscover.xml|108.162.249.190|live|404 - Page not found. Visitor came directly to this page and may have typed the URL incorrectly.
-ERROR|Fri, 27 Dec 2013 09:02:49 +1300|visitor|content|/autodiscover/autodiscover.xml|108.162.249.190|live|404 - Page not found. Visitor came directly to this page and may have typed the URL incorrectly.
-ERROR|Fri, 27 Dec 2013 09:04:54 +1300|visitor|content|/autodiscover/autodiscover.xml|108.162.249.190|live|404 - Page not found. Visitor came directly to this page and may have typed the URL incorrectly.
-INFO|Fri, 27 Dec 2013 09:29:35 +1300|site|favicon|/favicon.ico|108.162.250.138|live|The site favicon could not be found.
-ERROR|Fri, 27 Dec 2013 10:38:57 +1300|visitor|content|/favicon.png|173.245.56.179|live|404 - Page not found. Visitor came directly to this page and may have typed the URL incorrectly.
-ERROR|Fri, 27 Dec 2013 10:38:58 +1300|visitor|content|/favicon.gif|173.245.54.192|live|404 - Page not found. Visitor came directly to this page and may have typed the URL incorrectly.
-INFO|Fri, 27 Dec 2013 10:38:58 +1300|site|favicon|/favicon.ico|173.245.54.90|live|The site favicon could not be found.
