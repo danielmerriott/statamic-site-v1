@@ -170,7 +170,7 @@ class GitHubDeployHook {
      *  Attempt deployment of any repos found in the payload
      *  
      */
-    public function deploy() {
+    public function deploy( $clean = false ) {
     	// get the available repo / token / ref / commit details.
     	$repo = strtolower( $this->_payload->repository->name );
     	$token = $this->_token;
@@ -197,7 +197,8 @@ class GitHubDeployHook {
     							  $ref,
     							  $this->_repos[$repo]['refs'][$ref]['post'],
     							  $commit,
-    							  $repo );
+    							  $repo,
+							  $clean );
     		} else {
     			$this->log( '[SHA:' . $commit . '] No direct matches for ref ' . $ref . ' in ' . $repo, 'DEBUG' );
     			// Loop through stored refs and attempt match those ending in '*'.
@@ -226,7 +227,8 @@ class GitHubDeployHook {
 	    							  $ref,
 	    							  $this->_repos[$repo]['refs'][$bestkey]['post'],
 	    							  $commit,
-	    							  $repo );
+	    							  $repo,
+								  $clean );
     			}
     		}
     	} else {
@@ -247,84 +249,85 @@ class GitHubDeployHook {
      *  @param string $commit 	Remote commit SHA (for logging purposes)
      *  @param string $repo 	Name of repo (for logging purposes)
      */
-    private function gitdeploy( $path, $remote, $ref, $post, $commit, $repo ) {
-    	echo 'Finally going to run gitdeploy (' . $path . ', ' . $remote . ', ' . $ref . ', ' . $post . ', ' . $commit . PHP_EOL;
-    	$this->log( '[SHA:' . $commit . '] Starting gitdeploy actions for ' . $repo . '/' . $ref, 'DEBUG' );
-
-    	try {
-    		// Resolve path / does path exist?
-    		$realpath = realpath( $path );
-    		if ( ! file_exists( $realpath ) ) {
-    			throw new Exception( 'Path [' . $path . '] can not be found / resolved' );
-    		}
-    		// Check for .git sub-directory / is path under git control.
-    		if ( ! file_exists( $realpath . '/.git' ) ) {
-    			throw new Exception( 'Path [' . $realpath . '] not under git control' );
-    		}
-			// Discard any changes to tracked files since our last deploy.
-			unset ($output);
-			unset ($result);
-			exec( 'git --version', $output, $result );
-			if ( ! $result == 0 ) {
-				throw new Exception( 'Git command not found!' );
+	private function gitdeploy( $path, $remote, $ref, $post, $commit, $repo, $clean ) {
+		$this->log( '[SHA:' . $commit . '] Starting gitdeploy actions for ' . $repo . '/' . $ref, 'DEBUG' );
+		try {
+			// Resolve path / does path exist?
+			$realpath = realpath( dirname( $path ) ) . '/' . basename( $path );
+			if ( ! file_exists( $realpath ) ) {
+				throw new Exception( 'Path [' . $path . '] can not be found' );
 			} else {
-				$this->log( '[SHA:' . $commit . '] Git version returned: ' .  $output[0] , 'DEBUG' );
+				$this->log( '[SHA:' . $commit . '] Destination path ' . $realpath, 'DEBUG' );
 			}
-    		// Additional git checks.
-    		// git remote - capture first line
-    		// git --status branch - capture first line
-			//
+			// Check for .git sub-directory / is path under git control.
+			if ( ! file_exists( $realpath . '/.git' ) ) {
+				throw new Exception( 'Path [' . $realpath . '] not under git control' );
+			}
+			// Discard any changes to tracked files since our last deploy.
+			$this->cmdexec( 'git --version', 'Git version' );
+			// *** Add additional git checks. e.g. git remote / git --status branch
 			// Make sure we're in the right directory.
-                        unset ($result);
-			$result = chdir( $realpath );
-			if ( ! $result ) {
-				throw new Exception( 'Unable to chdir to [' . $realpath . ']' );
+			$return = chdir( $realpath );
+			if ( ! $return ) {
+				throw new Exception( 'Unable to chdir to ' . $realpath );
 			}
 			// Discard any changes to tracked files since our last deploy.
-			unset ($output);
-                        unset ($result);
-			exec( 'git reset --hard HEAD', $output, $result );
-			if ( ! $result == 0 ) {
-				throw new Exception( 'Git reset failed: ' . $output[0] );
-			} else {
-				$this->log( '[SHA:' . $commit . '] Git reset returned: ' . $output[0] , 'DEBUG' );
+			$this->cmdexec( 'git reset --hard HEAD', 'Git reset' );
+			// Discard any untracked files
+			if ( $clean ) {
+				$this->cmdexec( 'git clean -d --force', 'Git clean' );
 			}
 			// Update the local repository.
-			//unset ($output);
-                        //unset ($result);
-			//exec( 'git pull ' . $remote . ' ' . $ref . ' 2>&1', $output, $result );
-			//if ( ! $result == 0 ) {
-			//	throw new Exception( 'Git pull failed: ' . $output[0] );
-			//} else {
-			//	$this->log( '[SHA:' . $commit . '] Git pull returned: ' . $output[0] , 'DEBUG' );
-			//	$this->log( '[SHA:' . $commit . '] Deploy action for ' . $repo . '/' . $ref . ' completed successfully (' . $output[0] . ')', 'SUCCESS' );
-			//}
-			$this->execcmd( 'git pull ' . $remote . ' ' . $ref, 'Git pull' );
-			//exec( 'git checkout ' . $ref, $output );
-			// Run post-deploy script.
-			unset ($output);
-                        unset ($result);
-			if ( $post != '' ) {
-				$realpost = realpath( $post );
-				if ( ! file_exists( $realpost ) ) {
-					throw new Exception( 'Post-deploy script [' . $post . '] can not be found / resolved' );
-				} else {
-					exec( $realpost . ' ' . $path . ' ' . $remote . ' ' . $ref . ' ' . $post . ' ' . $commit . ' ' . $repo, $output );
+			unset ( $return );
+			if ( substr( $ref, 0, 9 ) == 'refs/tags' ) {
+				$this->log( '[SHA:' . $commit . '] XYZ ' . $ref , 'DEBUG' );
+				$return = $this->cmdexec( 'git pull --tags ' . $remote . ' master' , 'Git pull (tags)' );
+				if ( $return == true ) {
+                                        $this->log( '[SHA:' . $commit . '] Deploy action for ' . $repo . '/' . $ref .' (pull tags) completed successfully. ' . $output[0] , 'SUCCESS' );
+				}
+				unset ( $return );
+				$return = $this->cmdexec( 'git checkout ' . $ref  , 'Git checkout' );
+                                if ( $return == true ) {
+                                        $this->log( '[SHA:' . $commit . '] Deploy action for ' . $repo . '/' . $ref .' (checkout tag) completed successfully. ' . $output[0] , 'SUCCESS' );
+                                }
+			} else {
+				$return = $this->cmdexec( 'git pull ' . $remote . ' ' . $ref , 'Git pull' );
+				if ( $return == true ) {
+					$this->log( '[SHA:' . $commit . '] Deploy action for ' . $repo . '/' . $ref .' completed successfully. ' . $output[0] , 'SUCCESS' );
 				}
 			}
-    	} catch( Exception $e ) {
-    		$this->log( '[SHA:' . $commit . '] Deploy error: ' . $e->getMessage(), 'ERROR' );
-    	}
-    }
 
-    private function execcmd( $cmd, $title ) {
-	$this->log( 'execcmd ' . $cmd , 'DEBUG' );
-	exec( $cmd . ' 2>&1', $output, $result );
-	if ( ! $result == 0 ) {
-		throw new Exception( $title . ' failed: ' . $output[0] );
-	} else {
-		$this->log( '[SHA:' . $commit . '] ' . $title . ' returned: ' . $output[0] , 'DEBUG' );
+			//exec( 'git checkout ' . $ref, $output );
+			// Run post-deploy script.
+			// Remember that any relative paths are resolved from the repo path as we chdir'd earlier
+			if ( ! empty( $post ) ) {
+				$realpost = realpath( dirname( $post ) ) . '/' . basename( $post );;
+				$this->log( '[SHA:' . $commit . '] Post-deploy script found ' . $realpost, 'DEBUG' );
+				if ( ! file_exists( $realpost ) ) {
+					throw new Exception( 'Post-deploy script ' . $post . ' can not be found' );
+				} else {
+					unset ( $return );
+					$return = $this->cmdexec( $realpost . ' ' . $path . ' ' . $remote . ' ' . $ref . ' ' . $commit . ' ' . $repo, 'Post-deploy script' );
+					$this->log( '[SHA:' . $commit . '] Post-deploy action(s) for ' . $repo . '/' . $ref .' completed successfully.' , 'SUCCESS' );
+				}
+			} else {
+				$this->log( '[SHA:' . $commit . '] Did not know what to do with post-deploy script ' . $post, 'DEBUG' );
+			}
+		} catch( Exception $e ) {
+			$this->log( '[SHA:' . $commit . '] Deploy error - ' . $e->getMessage(), 'ERROR' );
+			$this->log( '[SHA:' . $commit . '] Deploy action for ' . $repo . '/' . $ref .' failed. ' . $output[0] , 'FAILURE' );
+		}
 	}
-    }
 
+	private function cmdexec( $cmd, $title ) {
+		exec( $cmd . ' 2>&1', $output, $result );
+		if ( ! $result == 0 ) {
+			throw new Exception( $title . ' failed: ' . $output[0] );
+			return false;
+		} else {
+			$this->log( '[SHA:' . substr( $this->_payload->after, 0, 10 ) . '] ' . $title . ' returned: ' . end($output) , 'DEBUG' );
+			return true;
+		}
+	}
 }
+
