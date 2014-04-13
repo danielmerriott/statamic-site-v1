@@ -45,23 +45,7 @@ Session.vim
 *.sass-cache
 
 
-#
-# Statamic
-#
 
-# ignore _logs as we don't want these to be version controlled
-/_logs/**
-#!/_logs/*/
- 
-# ignore _content and assets as these are tracked elsewhere
-# if these are symlinked then comment these links out
-/_content/*
-/assets/*
- 
-# ignore contents of _cache as we want this empty on each new deployment
-# make sure there is a .gitkeep file in the here though
-/_cache/**
-#!/_cache/*/
  
 # must be the last rule … allow .gitkeep file to ensure an 'empty' directory is kept
 !/**/.gitkeep
