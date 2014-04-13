@@ -27,36 +27,37 @@ _site_name: Another Awesome Statamic Site
 _content_root: _content
 
 # Used for permalinks
-_site_url: http://statamic.com
+_site_url: http://testsite.dev
 
 # Folder name of your desired theme
-_theme: denali
+_theme: eden-v1.0
 
 # Entries should include timestamp YYYY-MM-DD-HHII
 _entry_timestamps: false
 
 # Global formatting for {{ date }} variables
-_date_format: 'F jS, Y'
+_date_format: 'Y-m-d'
 
 # Global formatting for time variables
-_time_format: 'g:i.s a'
+_time_format: 'H:i:s'
 
 # Timezone
-_timezone: America/New_York
+_timezone: Pacific/Auckland
 
 # List of desired taxonomy triggers
 _taxonomy:
   - categories
   - tags
+  - author
 
 # Turns your slugs into pretty urls (spaces become "-" instead of %20)
-_taxonomy_slugify: false
+_taxonomy_slugify: true
 
 # Make taxonomy values case sensitive (when true, "example" would *not* match "Example")
 _taxonomy_case_sensitive: false
 
 # Converts the display of taxonomies to lowercase
-_taxonomy_force_lowercase: true
+_taxonomy_force_lowercase: false
 
 # Choose your content parsing syntax
 # Your available options:
@@ -90,7 +91,7 @@ _parse_order:
   - tags
 
 # If a given page is too high to return results in a paginated set, should we show the last page instead?
-_fix_out_of_range_pagination: true
+_fix_out_of_range_pagination: false
 
 
 ###########################################################################################
@@ -120,7 +121,7 @@ _log_enabled: true
 #  - error
 #  - fatal  (this is the most-serious level of logged message)
 # Levels less-serious than what you pick will be ignored
-_log_level: info
+_log_level: debug
 
 # Path to your log file
 #  - to define a path absolutely, start your path with a /
@@ -128,7 +129,7 @@ _log_level: info
 _log_file_path: _logs
 
 # Prefixes your log file, helpful if you're collecting multiple Statamic site logs in one directory
-_log_file_prefix: site
+_log_file_prefix: testsite
 
 
 ###########################################################################################
@@ -188,4 +189,4 @@ _cookies.cipher_mode: MCRYPT_MODE_CBC
 # The folder name of your publicly accessible directory. Usually something like
 # public, www, htdocs, or httpdocs. Leave this blank unless you're running above web root
 
-_public_path: 
+_public_path:

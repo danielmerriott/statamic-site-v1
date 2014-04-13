@@ -1,5 +1,6 @@
-title: Standard Page
+title: Jumbotron Front Page
 include: meta                  # include the meta fields
+include: jumbotron
 
 fields:
   title:
@@ -11,12 +12,12 @@ fields:
     instructions: "Enter your main page content here."
 
   _template:
-    type: hidden
-    default: page
+    type: hiden
+    default: frontpage-jumbotron
 
   content:
     display: Page Main Content
-    type: redactor
+    type: markitup
     image_dir: assets/img/page  #make sure the folder exists and is writable
     instructions:
       below: "Add the main page content here."
